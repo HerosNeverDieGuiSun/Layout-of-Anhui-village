@@ -11,7 +11,7 @@ import math
 import copy
 from numba import jit
 import csv
-import pandas as pd
+
 
 
 # 初始化画布

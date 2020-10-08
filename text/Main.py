@@ -103,7 +103,6 @@ def inhere(data):
             house = data_copy[i]['cnts'].copy()
             vector_angle(house, road)
             block_house.append(house.copy())
-        for i in range(10):
             if (len(block_house[i]) != 0):
                 block_data = block_data + block_house[i]
 
@@ -115,10 +114,11 @@ def inhere(data):
                     if index != -1:
                         del data_copy[i]['cnts'][index]
 
-        block_data.insert(0,np.array(type))
+        block_data.insert(0, np.array(type))
         block_data.append(road)
-
-        block_all_data.append(block_data)
+        # 空block清除
+        if(len(block_data[0])!=0):
+            block_all_data.append(block_data)
         k = k + 1
 
     return block_all_data
@@ -189,9 +189,9 @@ if __name__ == "__main__":
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # 提取轮廓
     data = select_range(hsv)
-
+    # 判断建筑是否在block内
     block_all_data = inhere(data)
-
+    # 提取所有有效block数据
     write_csv(block_all_data)
 
     # 图像展示

@@ -109,10 +109,18 @@ def inhere(data):
         for i in range(10):
             if (len(block_house[i]) != 0):
                 for j in range(len(block_house[i])):
-                    type.append(i)
+                    if(len(block_house[i][j]) != 1):
+                        type.append(i)
                     index = find_index(data_copy[4]['cnts'], block_house[i][j])
                     if index != -1:
                         del data_copy[i]['cnts'][index]
+        iter = 0
+        length = len(block_data)
+        while(iter<len(block_data)):
+            if(len(block_data[iter]) == 1):
+                del block_data[iter]
+            else:
+                iter = iter + 1
 
         block_data.insert(0, np.array(type))
         block_data.append(road)

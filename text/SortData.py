@@ -56,11 +56,12 @@ def showimg(frame, house, box):
     x = frame.shape[1]
     y = frame.shape[0]
     canvas = InitCanvas(x, y, color=(255, 255, 255))
+    t = box[0][1]
     # 绘制矩形
-    cv2.line(canvas, (254, 602), (227, 594), (0, 255, 0), 1)
-    cv2.line(canvas, (254, 602), (271, 546), (0, 255, 0), 1)
-    cv2.line(canvas, (227, 594), (244, 538), (0, 255, 0), 1)
-    cv2.line(canvas, (244, 538), (271, 546), (0, 255, 0), 1)
+    cv2.line(canvas, (box[0][0], box[0][1]), (box[1][0], box[1][1]), (0, 255, 0), 1)
+    cv2.line(canvas, (box[0][0], box[0][1]), (box[3][0], box[3][1]), (0, 255, 0), 1)
+    cv2.line(canvas, (box[1][0], box[1][1]), (box[2][0], box[2][1]), (0, 255, 0), 1)
+    cv2.line(canvas, (box[2][0], box[2][1]), (box[3][0], box[3][1]), (0, 255, 0), 1)
     # 绘制房屋
     cv2.polylines(canvas, house, 1, 0)
     cv2.imshow("frame", canvas)
@@ -84,3 +85,5 @@ def min_rect(house):
 
 if __name__ == "__main__":
     data = read_csv('5')
+    min_rect(data[5][15])
+    print()

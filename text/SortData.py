@@ -82,8 +82,14 @@ def min_rect(house):
     frame = cv2.imread("5.png")
     showimg(frame, house, box)
 
+# 获取面积函数
+def get_area(cnt):
+    area = cv2.contourArea(cnt)
+    print(area)
+
 
 if __name__ == "__main__":
     data = read_csv('5')
-    min_rect(data[5][15])
+    min_rect(data[28][7])
+    get_area(data[28][7])
     print()

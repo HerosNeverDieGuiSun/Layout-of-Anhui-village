@@ -4,7 +4,7 @@
 # @File : Kd_tree.py 
 # @desc:  KD树的构建
 
-from text.Distances.utils import get_eu_dist
+from Distances.utils import get_eu_dist
 
 
 class Node(object):

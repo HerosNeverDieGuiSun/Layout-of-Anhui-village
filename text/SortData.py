@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/10/12 19:44 
-# @Author : zzd 
+# @Author : zzd、zl
 # @File : SortData.py 
 # @desc:  将csv的记录整理成对应的数据格式
 
@@ -20,10 +20,6 @@ def InitCanvas(width, height, color=(255, 255, 255)):
 
 # str转array坐标函数
 def toarray(str):
-    # # 获取数据个数
-    # num = str.count(']], [[',0, len(str))
-    # num = num +1
-
     # 转成list
     temp = json.loads(str)
     arr = np.array(temp)
@@ -51,25 +47,6 @@ def read_csv(filename):
     return data
 
 
-def showimg(frame, house, box):
-    # 生成指定大小的画布
-    x = frame.shape[1]
-    y = frame.shape[0]
-    canvas = InitCanvas(x, y, color=(255, 255, 255))
-    # 绘制矩形
-    cv2.line(canvas, (box[0][0], box[0][1]), (box[1][0], box[1][1]), (0, 255, 0), 1)
-    cv2.line(canvas, (box[0][0], box[0][1]), (box[3][0], box[3][1]), (0, 255, 0), 1)
-    cv2.line(canvas, (box[1][0], box[1][1]), (box[2][0], box[2][1]), (0, 255, 0), 1)
-    cv2.line(canvas, (box[2][0], box[2][1]), (box[3][0], box[3][1]), (0, 255, 0), 1)
-    # 绘制房屋
-    cv2.polylines(canvas, house, 1, 0)
-    cv2.imshow("frame", canvas)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    cv2.destroyWindow('frame')
-
-
-
 # 寻找最小矩形包围盒函数
 def min_all_rect(data):
     # 包围盒中心点坐标
@@ -93,9 +70,23 @@ def min_all_rect(data):
             j = j + 1
     return box_center
 
+
     # 读取图片
     # frame = cv2.imread("../Lable/1.png")
     # showimg(frame, house, box)
+
+
+# 寻找最小矩形函数
+def min_rect(house):
+    # 找到最小矩形，返回中心坐标，长宽，旋转角度
+    rect = cv2.minAreaRect(house)
+    # 计算矩形四个顶点坐标
+    box = cv2.boxPoints(rect)
+    # 转化成int
+    box = np.int0(box)
+    return box
+
+
 
 def showing_all(frame, data):
     # 生成指定大小的画布
@@ -124,26 +115,16 @@ def showing_all(frame, data):
     cv2.destroyWindow('frame')
 
 
-# 寻找最小矩形函数
-def min_rect(house):
-    # 找到最小矩形，返回中心坐标，长宽，旋转角度
-    rect = cv2.minAreaRect(house)
-    # 计算矩形四个顶点坐标
-    box = cv2.boxPoints(rect)
-    # 转化成int
-    box = np.int0(box)
-    return box
-
-
-
-# 获取面积函数
+# 获取矩形包围盒面积函数
 def get_area(cnt):
     area = cv2.contourArea(cnt)
     print(area)
 
 
+
 # 寻找最短距离函数
 def shortest_dist(box_center,data):
+
     for i in range(len(data)):
         # 存储每个block中建筑个数序列
         block_housenum = []
@@ -173,8 +154,10 @@ if __name__ == "__main__":
     # 根据中心点坐标获取距离最近的房子
     shortest_dist(box_center, data)
 
+
     get_area(data[28][7])
     frame = cv2.imread("../Lable/1.png")
+
     showing_all(frame, data)
     print()
 

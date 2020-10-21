@@ -143,7 +143,7 @@ def get_area(cnt):
 
 
 # 寻找最短距离函数
-def Shortest_dist(box_center,data):
+def shortest_dist(box_center,data):
     for i in range(len(data)):
         # 存储每个block中建筑个数序列
         block_housenum = []
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     # 获取最小矩形包围盒中心点坐标
     box_center = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
-    Shortest_dist(box_center, data)
+    shortest_dist(box_center, data)
 
     get_area(data[28][7])
     frame = cv2.imread("../Lable/1.png")

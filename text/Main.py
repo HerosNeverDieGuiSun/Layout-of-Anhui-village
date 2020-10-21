@@ -215,14 +215,14 @@ def write_csv(block_all_data):
         for j in range(len(block_all_data[i])):
             block_all_data[i][j] = block_all_data[i][j].tolist()
     # 文件写入
-    with open('5.csv', 'w') as file:
+    with open('../CSV/1_block_cnts.csv', 'w') as file:
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(block_all_data)
 
 
 if __name__ == "__main__":
     # 读取图片
-    frame = cv2.imread("5.png")
+    frame = cv2.imread("../Lable/1.png")
     # 高斯模糊
     gs_frame = cv2.GaussianBlur(frame, (5, 5), 0)
     # 转化成HSV图像

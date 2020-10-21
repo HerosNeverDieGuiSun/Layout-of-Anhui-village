@@ -94,7 +94,7 @@ def min_all_rect(data):
     return box_center
 
     # 读取图片
-    # frame = cv2.imread("5.png")
+    # frame = cv2.imread("../Lable/1.png")
     # showimg(frame, house, box)
 
 def showing_all(frame, data):
@@ -109,10 +109,10 @@ def showing_all(frame, data):
             if (j < len(data[i]) - 1):
                 box = min_rect(data[i][j])
                 # 绘制矩形
-                cv2.line(canvas, (box[0][0], box[0][1]), (box[1][0], box[1][1]), (0, 255, 0), 1)
-                cv2.line(canvas, (box[0][0], box[0][1]), (box[3][0], box[3][1]), (0, 255, 0), 1)
-                cv2.line(canvas, (box[1][0], box[1][1]), (box[2][0], box[2][1]), (0, 255, 0), 1)
-                cv2.line(canvas, (box[2][0], box[2][1]), (box[3][0], box[3][1]), (0, 255, 0), 1)
+                cv2.line(canvas, (box[0][0], box[0][1]), (box[1][0], box[1][1]), (0, 0, 255), 1)
+                cv2.line(canvas, (box[0][0], box[0][1]), (box[3][0], box[3][1]), (0, 0, 255), 1)
+                cv2.line(canvas, (box[1][0], box[1][1]), (box[2][0], box[2][1]), (0, 0, 255), 1)
+                cv2.line(canvas, (box[2][0], box[2][1]), (box[3][0], box[3][1]), (0, 0, 255), 1)
 
             # 绘制房屋
             cv2.polylines(canvas, data[i][j], 1, 0)
@@ -167,14 +167,14 @@ def Shortest_dist(box_center,data):
 if __name__ == "__main__":
 
     # 导入csv数据信息
-    data = read_csv('./5')
+    data = read_csv('../CSV/1_block_cnts')
     # 获取最小矩形包围盒中心点坐标
     box_center = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     Shortest_dist(box_center, data)
 
     get_area(data[28][7])
-    frame = cv2.imread("5.png")
+    frame = cv2.imread("../Lable/1.png")
     showing_all(frame, data)
     print()
 

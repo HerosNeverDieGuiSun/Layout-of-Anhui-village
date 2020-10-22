@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import csv
 import json
+import sys
 
 
 # 初始化画布
@@ -35,7 +36,7 @@ def showimg(frame, cnts):
 def clean_cnts(cnts):
     i = 0
     while (i < len(cnts)):
-        if (len(cnts[i]) < 5):
+        if (len(cnts[i]) < 7):
             del cnts[i]
             i = i - 1
         i = i + 1
@@ -45,11 +46,6 @@ def clean_cnts(cnts):
 
 # str转array坐标函数
 def toarray(str):
-    # # 获取数据个数
-    # num = str.count(']], [[',0, len(str))
-    # num = num +1
-
-    # 转成list
     temp = json.loads(str)
     arr = np.array(temp)
     return arr
@@ -145,6 +141,16 @@ def show(cnts, house):
     cv2.destroyAllWindows()
     cv2.destroyWindow('frame')
 
+
+def examination(pair):
+    for i in range(len(pair)):
+        j = i + 1
+        while (j < len(pair)):
+            if (pair[i][1][0] == pair[j][1][0] and pair[i][1][1] == pair[j][1][1]):
+                print("出事了" + "i=" + str(i) + "and j = " + str(j))
+            j = j + 1
+
+
 # 展示红点和识别不出的房子
 def show(pair):
     # 读取图片
@@ -153,8 +159,7 @@ def show(pair):
     y = frame.shape[0]
     # 生成指定大小的画布
     canvas = InitCanvas(x, y, color=(255, 255, 255))
-    # cv2.polylines(canvas, cnts, 1, 0)
-    # cv2.polylines(canvas, house, 1, 0)
+
     for i in range(len(pair)):
         cv2.line(canvas, (pair[i][0][0], pair[i][0][1]), (pair[i][1][0], pair[i][1][1]), (0, 0, 255), 1)
 
@@ -164,67 +169,74 @@ def show(pair):
     cv2.destroyAllWindows()
     cv2.destroyWindow('frame')
 
-def min_dist(house_center, center):
+
+# 计算房屋中心和朝向中心的距离
+def calculate_dist(house_center, center):
     return pow(house_center[0] - center[0], 2) + pow(house_center[1] - center[1], 2)
 
 
+# 寻找与house最近的朝向坐标点
+def min_dist(house_center, towards_center):
+    # 设置最大值
+    temp = sys.maxsize
+    label = 0
+    for p in range(len(towards_center)):
+        dist = calculate_dist(house_center, towards_center[p])
+        if (dist < temp):
+            temp = dist
+            label = p
+    return label
+
+
+# 计算data中屋子的数量
+def house_num(data, cnts):
+    count = 0
+    for i in range(len(data)):
+        count = count + len(data[i]) - 2
+    print("房屋的数量为:" + str(count) + "  朝向点的数量为：" + str(len(cnts)))
+
+
+# 计算朝向
 def calculate_towards(cnts, data):
     towards_center = []
     for i in range(len(cnts)):
         # 找到最小矩形，返回中心坐标，长宽，旋转角度
         rect = cv2.minAreaRect(cnts[i])
+        # 转成int
         rect_int = np.int0(rect[0])
+        # 加入list
         towards_center.append(rect_int)
 
     pair = []
     for i in range(len(data)):
         j = 1
         while (j < len(data[i]) - 1):
+            # 提取house数据
             house = data[i][j]
+            # 返回房屋四角坐标和中心点坐标
             box, house_center = min_rect(house)
             j = j + 1
             k = 0
             while (k < len(towards_center)):
+                # 判断朝向中心点是否在矩形中
                 if (in_matrix(box, towards_center[k]) == True):
+                    # 加入节点对中
                     pair.append([house_center, towards_center[k]])
-                    # del towards_center[k]
                     break
-                    # print(towards_center[k])
-                    # print(box)
-                    # print()
                 else:
                     k = k + 1
-            temp = 9999999999999999
-            label = 0
-            if (k == len(towards_center)):
-                for p in range(len(towards_center)):
-                    dist = min_dist(house_center,towards_center[p])
-                    if(dist<temp):
-                        temp = dist
-                        label = p
-                pair.append([house_center, towards_center[label]])
-                # show(cnts, data[i][j])
-                print()
 
-    # square = [(0, 0), (2, 0), (2, 2), (0, 2)]  # 多边形坐标
-    # pt1 = (10, 2)  # 点坐标
-    # pt2 = (2, 2)
-    # print(in_matrix(square, pt2))
-    for i in range(len(pair)):
-        j =i + 1
-        while(j<len(pair)):
-            if(pair[i][1][0] == pair[j][1][0] and pair[i][1][1] == pair[j][1][1]):
-                print("出事了" + "i="+ str(i) + "and j = "+ str(j))
-            j = j + 1
+            # 如果朝向点没有在包围盒中，则寻找其最近朝向点
+            if (k == len(towards_center)):
+                label = min_dist(house_center, towards_center)
+                pair.append([house_center, towards_center[label]])
+
+    examination(pair)
     show(pair)
-    print()
 
 
 if __name__ == "__main__":
     cnts = read_towards_img("1")
     data = read_block_csv("1")
+    house_num(data, cnts)
     calculate_towards(cnts, data)
-
-    count = 0
-    for i in range(len(data)):
-        count = count + len(data[i]) - 2

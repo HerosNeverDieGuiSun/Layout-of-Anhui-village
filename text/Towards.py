@@ -76,7 +76,7 @@ def read_towards_img(filename):
     # 提取轮廓
     cnts = select_range(hsv)
     # 图形展示
-    # showimg(frame,cnts)
+    showimg(frame,cnts)
     return cnts
 
 

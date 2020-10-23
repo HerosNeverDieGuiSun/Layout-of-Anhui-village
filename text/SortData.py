@@ -8,7 +8,9 @@ from Distances.Kd_tree import KDTree
 import csv
 import numpy as np
 import json
+import sys
 import cv2
+import math
 
 
 # 初始化画布
@@ -68,7 +70,7 @@ def min_all_rect(data):
             b_int = np.int0(b)
             box_Vercoordinate[i].append(b_int)
             j = j + 1
-    return box_center
+    return box_center, box_Vercoordinate
 
 
     # 读取图片
@@ -121,39 +123,118 @@ def get_area(cnt):
     print(area)
 
 
-
-# 寻找最短距离函数
-def shortest_dist(box_center,data):
-
+# 寻找block中两建筑间的最近距离
+def shortestHouse_dist(box_center,data):
+    allhouseHouse_min_dist = []
     for i in range(len(data)):
-        # 存储每个block中建筑个数序列
+        # 存储一个block中建筑个数的序列
         block_housenum = []
-        # block中建筑的中心坐标点集合
+        # 一个block中建筑的中心坐标点集合
         house_center = []
         for l in range(len(box_center[i])):
             block_housenum.append(l)
             house_center.append(box_center[i][l].tolist())
-        # 建立 KD Tree
-        tree = KDTree()
-        tree.build_tree(house_center, block_housenum)
-        j = 0
-        while j < len(box_center[i]):
-            # block中每个建筑的中心坐标点
-            each_house_center = box_center[i][j].tolist()
-            # KD Tree 搜索
-            nd = tree.nearest_neighbour_search(each_house_center)
-            j = j + 1
+        # 对一个block中建筑间最近距离的计算
+        houseHouse_min_dist = []
+        for s in range(len(house_center)):
+            for t in range(len(house_center)):
+                if(house_center[s] == house_center[t]):
+                    m = house_center[t]  # 保存将要移除的建筑中心坐标
+                    n = block_housenum[t]  # 保存将要移除的建筑序列序号
+                    house_center.remove(house_center[t])  # 移除当前建筑中心坐标
+                    block_housenum.remove(block_housenum[t])  # 此时个数序列总值减一
+
+                    # 建立 KD Tree
+                    tree = KDTree()
+                    tree.build_tree(house_center, block_housenum)
+                    # KD Tree 搜索最近距离
+                    min_dist = sys.maxsize
+                    nd = tree.nearest_neighbour_search(m)
+                    temp = distance(nd.split[0], m)
+                    if (min_dist > temp):
+                        min_dist = temp
+                    min_dist = math.sqrt(min_dist)
+                    # 存储一个block中每个建筑与其相距最近建筑的距离
+                    houseHouse_min_dist.append(min_dist)
+
+                    house_center.insert(t, m)  # 重新表示为原block中建筑中心坐标集合
+                    block_housenum.insert(t, n)  # 重新表示为原block中建筑个数的序列
+
+        allhouseHouse_min_dist.append(houseHouse_min_dist)
+
+    return allhouseHouse_min_dist
+
+
+# 寻找block中的建筑与最近路的距离
+def shortestRoad_dist(box_Vercoordinate, data):
+    allHouseRoad_min_dist = []
+
+    # # 一条block数据
+    for i in range(len(data)):
+        # 存储block路的坐标点
+        road_point = data[i][len(data[i])-1].tolist()
+        road_point = flat_list(road_point)
+        # 记录block路的坐标点个数序列
+        road_pointNum = []
+        for t in range(len(data[i][len(data[i])-1])):
+            road_pointNum.append(t)
+
+        # # 一条block数据中的一个建筑
+        # 一条block中所有建筑的边长中点坐标集合
+        house_sideLenCenter = [[] for m in range(len(box_Vercoordinate[i]))]
+        # houseRoad_min_dist = [[] for n in range(len(box_Vercoordinate[i]))]
+        houseRoad_min_dist = []
+        for l in range(len(box_Vercoordinate[i])):
+            k = 0
+
+            # # 一个建筑的四条边长的中点坐标集合
+            for k in range(len((box_Vercoordinate[i][l]))):
+                if (k == len((box_Vercoordinate[i][l])) - 1):
+                    sidelencenter = (box_Vercoordinate[i][l][k] + box_Vercoordinate[i][l][0]) / 2
+                else:
+                    sidelencenter = (box_Vercoordinate[i][l][k+1] + box_Vercoordinate[i][l][k])/2
+                house_sideLenCenter[l].append(sidelencenter.tolist())
+
+            # 建立 KD Tree
+            tree = KDTree()
+            tree.build_tree(road_point, road_pointNum)
+            # KD Tree 搜索最近距离
+            min_dist = sys.maxsize
+            for s in range(len(house_sideLenCenter[l])):
+                nd = tree.nearest_neighbour_search(house_sideLenCenter[l][s])
+                temp = distance(nd.split[0], house_sideLenCenter[l][s])
+                if (min_dist > temp):
+                    min_dist = temp
+            min_dist = math.sqrt(min_dist)
+            houseRoad_min_dist.append(min_dist)
+        allHouseRoad_min_dist.append(houseRoad_min_dist)
+
+    return allHouseRoad_min_dist
+
+
+# 计算两点间的距离
+def distance(point1, point2):
+    return pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2)
+
+
+def flat_list(road_point):
+    for i in range(len(road_point)):
+        temp = road_point[0][0]
+        road_point.extend([temp])
+        road_point.remove(road_point[0])
+    return road_point
 
 
 if __name__ == "__main__":
-
+    # a()
     # 导入csv数据信息
     data = read_csv('../CSV/1_block_cnts')
-    # 获取最小矩形包围盒中心点坐标
-    box_center = min_all_rect(data)
+    # 获取最小矩形包围盒中心点坐标及四个顶点坐标
+    (box_center, box_Vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
-    shortest_dist(box_center, data)
-
+    shd = shortestHouse_dist(box_center, data)
+    # 根据矩形包围盒四边中点获取距离最近的路
+    srd = shortestRoad_dist(box_Vercoordinate, data)
 
     get_area(data[28][7])
     frame = cv2.imread("../Lable/1.png")

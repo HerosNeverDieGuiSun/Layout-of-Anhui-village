@@ -134,7 +134,7 @@ def shortestHouse_dist(box_center,data):
         for l in range(len(box_center[i])):
             block_housenum.append(l)
             house_center.append(box_center[i][l].tolist())
-        # 对一个block中建筑间最近距离的计算
+        # 一个block中建筑间最近距离的计算
         houseHouse_min_dist = []
         for s in range(len(house_center)):
             for t in range(len(house_center)):

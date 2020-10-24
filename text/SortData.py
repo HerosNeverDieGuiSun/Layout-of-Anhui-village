@@ -216,7 +216,7 @@ def shortestRoad_dist(box_Vercoordinate, data):
 def distance(point1, point2):
     return pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2)
 
-
+# 压平list
 def flat_list(road_point):
     for i in range(len(road_point)):
         temp = road_point[0][0]

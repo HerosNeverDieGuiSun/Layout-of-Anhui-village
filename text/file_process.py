@@ -151,7 +151,7 @@ def house_select_range(hsv):
 
 
 # 初始化画布
-def InitCanvas(width, height, color=(255, 255, 255)):
+def init_canvas(width, height, color=(255, 255, 255)):
     canvas = np.ones((height, width, 3), dtype="uint8")
     canvas[:] = color
     return canvas
@@ -163,7 +163,7 @@ def show_cnts(filename, cnts):
     x = frame.shape[1]
     y = frame.shape[0]
     # 生成指定大小的画布
-    canvas = InitCanvas(x, y, color=(255, 255, 255))
+    canvas = init_canvas(x, y, color=(255, 255, 255))
     cv2.polylines(canvas, cnts, 1, 0)
     cv2.imshow("frame", canvas)
     cv2.imwrite("canny.jpg", canvas)
@@ -179,7 +179,7 @@ def show_pair(filename, pair):
     x = frame.shape[1]
     y = frame.shape[0]
     # 生成指定大小的画布
-    canvas = InitCanvas(x, y, color=(255, 255, 255))
+    canvas = init_canvas(x, y, color=(255, 255, 255))
 
     for i in range(len(pair)):
         cv2.line(canvas, (pair[i][0][0], pair[i][0][1]), (pair[i][1][0], pair[i][1][1]), (0, 0, 255), 1)
@@ -198,7 +198,7 @@ def show_error_house(filename, cnts, house):
     x = frame.shape[1]
     y = frame.shape[0]
     # 生成指定大小的画布
-    canvas = InitCanvas(x, y, color=(255, 255, 255))
+    canvas = init_canvas(x, y, color=(255, 255, 255))
     cv2.polylines(canvas, cnts, 1, 0)
     cv2.polylines(canvas, house, 1, 0)
     cv2.imshow("frame", canvas)
@@ -214,7 +214,7 @@ def show_rect(filename, data):
     # 生成指定大小的画布
     x = frame.shape[1]
     y = frame.shape[0]
-    canvas = InitCanvas(x, y, color=(255, 255, 255))
+    canvas = init_canvas(x, y, color=(255, 255, 255))
 
     for i in range(len(data)):
         j = 1

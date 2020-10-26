@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/10/12 19:44 
 # @Author : zzd、zl
-# @File : SortData.py 
+# @File : sort_data.py
 # @desc:  将csv的记录整理成对应的数据格式
 
 from Distances.Kd_tree import KDTree
@@ -11,42 +11,7 @@ import json
 import sys
 import cv2
 import math
-
-
-# 初始化画布
-def InitCanvas(width, height, color=(255, 255, 255)):
-    canvas = np.ones((height, width, 3), dtype="uint8")
-    canvas[:] = color
-    return canvas
-
-
-# str转array坐标函数
-def toarray(str):
-    # 转成list
-    temp = json.loads(str)
-    arr = np.array(temp)
-    return arr
-
-
-# 从csv中读取数据
-def read_csv(filename):
-    # 设置文件路径
-    CSV_FILE_PATH = filename + '.csv'
-    # 定义存储数据机构
-    data = []
-
-    # 数据读取
-    with open(CSV_FILE_PATH, 'r') as f:
-        file = csv.reader(f)
-        for line in file:
-            data.append(line)
-
-    # 将所有数据从str 转成array
-    for i in range(len(data)):
-        for j in range(len(data[i])):
-            data[i][j] = toarray(data[i][j])
-
-    return data
+import file_process as fp
 
 
 # 寻找最小矩形包围盒函数
@@ -71,50 +36,6 @@ def min_all_rect(data):
             box_Vercoordinate[i].append(b_int)
             j = j + 1
     return box_center, box_Vercoordinate
-
-
-    # 读取图片
-    # frame = cv2.imread("../Lable/1.png")
-    # showimg(frame, house, box)
-
-
-# 寻找最小矩形函数
-def min_rect(house):
-    # 找到最小矩形，返回中心坐标，长宽，旋转角度
-    rect = cv2.minAreaRect(house)
-    # 计算矩形四个顶点坐标
-    box = cv2.boxPoints(rect)
-    # 转化成int
-    box = np.int0(box)
-    return box
-
-
-
-def showing_all(frame, data):
-    # 生成指定大小的画布
-    x = frame.shape[1]
-    y = frame.shape[0]
-    canvas = InitCanvas(x, y, color=(255, 255, 255))
-
-    for i in range(len(data)):
-        j = 1
-        while (j < len(data[i])):
-            if (j < len(data[i]) - 1):
-                box = min_rect(data[i][j])
-                # 绘制矩形
-                cv2.line(canvas, (box[0][0], box[0][1]), (box[1][0], box[1][1]), (0, 0, 255), 1)
-                cv2.line(canvas, (box[0][0], box[0][1]), (box[3][0], box[3][1]), (0, 0, 255), 1)
-                cv2.line(canvas, (box[1][0], box[1][1]), (box[2][0], box[2][1]), (0, 0, 255), 1)
-                cv2.line(canvas, (box[2][0], box[2][1]), (box[3][0], box[3][1]), (0, 0, 255), 1)
-
-            # 绘制房屋
-            cv2.polylines(canvas, data[i][j], 1, 0)
-            j = j + 1
-
-    cv2.imshow("frame", canvas)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    cv2.destroyWindow('frame')
 
 
 # 获取矩形包围盒面积函数
@@ -162,7 +83,7 @@ def shortestHouse_dist(box_center):
 # 寻找block中的建筑与最近路的距离
 def shortestRoad_dist(box_Vercoordinate, data):
     allHouseRoad_min_dist = []
-    y = [0,1,2]
+    y = [0, 1, 2]
     a = y[-1]
     # # 一条block数据
     for i in range(len(data)):
@@ -187,7 +108,7 @@ def shortestRoad_dist(box_Vercoordinate, data):
                 if (k == len((box_Vercoordinate[i][l])) - 1):
                     sidelencenter = (box_Vercoordinate[i][l][k] + box_Vercoordinate[i][l][0]) / 2
                 else:
-                    sidelencenter = (box_Vercoordinate[i][l][k+1] + box_Vercoordinate[i][l][k])/2
+                    sidelencenter = (box_Vercoordinate[i][l][k + 1] + box_Vercoordinate[i][l][k]) / 2
                 house_sideLenCenter[l].append(sidelencenter.tolist())
 
             # 建立 KD Tree
@@ -211,6 +132,7 @@ def shortestRoad_dist(box_Vercoordinate, data):
 def distance(point1, point2):
     return pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2)
 
+
 # 压平list
 def flat_list(road_point):
     for i in range(len(road_point)):
@@ -221,9 +143,8 @@ def flat_list(road_point):
 
 
 if __name__ == "__main__":
-    # a()
     # 导入csv数据信息
-    data = read_csv('../CSV/1_block_cnts')
+    data = fp.cnts_read_csv('1')
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     (box_center, box_Vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
@@ -231,10 +152,5 @@ if __name__ == "__main__":
     # 根据矩形包围盒四边中点获取距离最近的路
     srd = shortestRoad_dist(box_Vercoordinate, data)
 
-    get_area(data[28][7])
-    frame = cv2.imread("../Lable/1.png")
-
-    showing_all(frame, data)
+    fp.show_rect('1', data)
     print()
-
-

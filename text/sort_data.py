@@ -45,7 +45,7 @@ def get_area(cnt):
 
 
 # 寻找block中两建筑间的最近距离
-def shortestHouse_dist(box_center):
+def shortest_house_dist(box_center):
     allhouse2house_min_dist = []
     for i in range(len(box_center)):
         # 存储一个block中建筑个数的序列
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
-    shd = shortestHouse_dist(box_center)
+    shd = shortest_house_dist(box_center)
     # 根据矩形包围盒四边中点获取距离最近的路
     srd = shortest_road_dist(box_vercoordinate, data)
 

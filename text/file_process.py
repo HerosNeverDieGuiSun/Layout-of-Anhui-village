@@ -23,6 +23,18 @@ def cnts_write_csv(block_all_data, filename):
         csvwriter.writerows(block_all_data)
 
 
+def info_write_csv(info, filename):
+    # 数据结构调整
+    for i in range(len(info)):
+        for j in range(len(info[i])):
+            for key in info[i][j].keys():
+                info[i][j][key] = str(info[i][j][key])
+    # 文件写入
+    with open('../CSV/' + filename + '_block_info.csv', 'a') as file:
+        csvwriter = csv.writer(file, lineterminator='\n')
+        csvwriter.writerows(info)
+
+
 # str转array坐标函数
 def toarray(str):
     # 转成list
@@ -206,6 +218,7 @@ def show_error_house(filename, cnts, house):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     cv2.destroyWindow('frame')
+
 
 # 展示矩形包围盒
 def show_rect(filename, data):

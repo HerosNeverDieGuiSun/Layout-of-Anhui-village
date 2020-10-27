@@ -14,6 +14,7 @@ import math
 import file_process as fp
 import towards
 
+
 # 寻找最小矩形包围盒函数
 def min_all_rect(data):
     # 包围盒中心点坐标
@@ -42,6 +43,7 @@ def min_all_rect(data):
 def get_area(cnt):
     area = cv2.contourArea(cnt)
     return area
+
 
 # 寻找block中两建筑间的最近距离
 def shortest_house_dist(box_center):
@@ -144,14 +146,15 @@ def flat_list(road_point):
         road_point.remove(road_point[0])
     return road_point
 
+
 # 获取长宽
 def get_side(vercoordinate):
     side = []
-    a = math.sqrt(pow(vercoordinate[0][0]-vercoordinate[1][0],2)+pow(vercoordinate[0][1]-vercoordinate[1][1],2))
-    a = float('%0.3f'%a)
-    b = math.sqrt(pow(vercoordinate[0][0]-vercoordinate[3][0],2)+pow(vercoordinate[0][1]-vercoordinate[3][1],2))
-    b = float('%0.3f'%b)
-    if a>b :
+    a = math.sqrt(pow(vercoordinate[0][0] - vercoordinate[1][0], 2) + pow(vercoordinate[0][1] - vercoordinate[1][1], 2))
+    a = float('%0.3f' % a)
+    b = math.sqrt(pow(vercoordinate[0][0] - vercoordinate[3][0], 2) + pow(vercoordinate[0][1] - vercoordinate[3][1], 2))
+    b = float('%0.3f' % b)
+    if a > b:
         side.append(a)
         side.append(b)
     else:
@@ -159,28 +162,29 @@ def get_side(vercoordinate):
         side.append(a)
     return side
 
+
 # 数据整理，生成字典
-def sort(data,pair,shd,srd):
+def sort(data, pair, shd, srd):
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     box_center, box_vercoordinate = min_all_rect(data)
     # 初始化单元格信息
-    cell = {}
     info = []
     for i in range(len(box_center)):
-        cell = {}
         block = []
         for j in range(len(box_center[i])):
+            cell = {}
             cell['label'] = data[i][0][j]
             cell['center'] = box_center[i][j]
-            cell['vercoordinate'] = box_vercoordinate[i][j]
-            cell['area'] = get_area(data[i][j+1])
+            cell['vercoordinate'] = box_vercoordinate[i][j].tolist()
+            cell['area'] = get_area(data[i][j + 1])
             cell['side'] = get_side(box_vercoordinate[i][j])
-            cell['angle'] = towards.get_angle(box_center[i][j],pair)
-            cell['dist_house'] = shd[i][j]
+            cell['angle'] = towards.get_angle(box_center[i][j], pair)
+            cell['dist_house'] =  shd[i][j]
             cell['dist_road'] = srd[i][j]
             block.append(cell)
         info.append(block)
-    print()
+    return info
+
 
 if __name__ == "__main__":
     # 导入csv数据信息
@@ -196,6 +200,7 @@ if __name__ == "__main__":
     shd = shortest_house_dist(box_center)
     # 根据矩形包围盒四边中点获取距离最近的路
     srd = shortest_road_dist(box_vercoordinate, data)
-    sort(data,pair,shd,srd)
-    fp.show_rect('1', data)
+    info = sort(data, pair, shd, srd)
+    fp.info_write_csv(info, '1')
+    # fp.show_rect('1', data)
     print()

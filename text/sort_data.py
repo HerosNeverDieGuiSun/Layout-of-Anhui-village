@@ -12,7 +12,7 @@ import sys
 import cv2
 import math
 import file_process as fp
-
+import towards
 
 # 寻找最小矩形包围盒函数
 def min_all_rect(data):
@@ -41,8 +41,7 @@ def min_all_rect(data):
 # 获取矩形包围盒面积函数
 def get_area(cnt):
     area = cv2.contourArea(cnt)
-    print(area)
-
+    return area
 
 # 寻找block中两建筑间的最近距离
 def shortest_house_dist(box_center):
@@ -56,8 +55,10 @@ def shortest_house_dist(box_center):
             block_housenum.append(l)
             house_center.append(box_center[i][l].tolist())
         # 一个block中建筑间最近距离的计算
-        house2house_min_dist = []
+        temp_house_house_min_dist = []
+
         for s in range(len(house_center)):
+            house_house_min_dist = []
             m = house_center[s]  # 保存将要移除的建筑中心坐标
             n = block_housenum[s]  # 保存将要移除的建筑序列序号
             house_center.remove(house_center[s])  # 移除当前建筑中心坐标
@@ -70,12 +71,14 @@ def shortest_house_dist(box_center):
             nd = tree.nearest_neighbour_search(m)
             min_dist = math.sqrt(distance(nd.split[0], m))
             # 存储一个block中每个建筑与其相距最近建筑的距离
-            house2house_min_dist.append(min_dist)
+            house_house_min_dist.append(nd.split[0])
+            house_house_min_dist.append(min_dist)
+            temp_house_house_min_dist.append(house_house_min_dist)
 
             house_center.insert(s, m)  # 重新表示为原block中建筑中心坐标集合
             block_housenum.insert(s, n)  # 重新表示为原block中建筑个数的序列
 
-        allhouse2house_min_dist.append(house2house_min_dist)
+        allhouse2house_min_dist.append(temp_house_house_min_dist)
 
     return allhouse2house_min_dist
 
@@ -141,16 +144,58 @@ def flat_list(road_point):
         road_point.remove(road_point[0])
     return road_point
 
+# 获取长宽
+def get_side(vercoordinate):
+    side = []
+    a = math.sqrt(pow(vercoordinate[0][0]-vercoordinate[1][0],2)+pow(vercoordinate[0][1]-vercoordinate[1][1],2))
+    a = float('%0.3f'%a)
+    b = math.sqrt(pow(vercoordinate[0][0]-vercoordinate[3][0],2)+pow(vercoordinate[0][1]-vercoordinate[3][1],2))
+    b = float('%0.3f'%b)
+    if a>b :
+        side.append(a)
+        side.append(b)
+    else:
+        side.append(b)
+        side.append(a)
+    return side
+
+# 数据整理，生成字典
+def sort(data,pair,shd,srd):
+    # 获取最小矩形包围盒中心点坐标及四个顶点坐标
+    box_center, box_vercoordinate = min_all_rect(data)
+    # 初始化单元格信息
+    cell = {}
+    info = []
+    for i in range(len(box_center)):
+        cell = {}
+        block = []
+        for j in range(len(box_center[i])):
+            cell['label'] = data[i][0][j]
+            cell['center'] = box_center[i][j]
+            cell['vercoordinate'] = box_vercoordinate[i][j]
+            cell['area'] = get_area(data[i][j+1])
+            cell['side'] = get_side(box_vercoordinate[i][j])
+            cell['angle'] = towards.get_angle(box_center[i][j],pair)
+            cell['dist_house'] = shd[i][j]
+            cell['dist_road'] = srd[i][j]
+            block.append(cell)
+        info.append(block)
+    print()
 
 if __name__ == "__main__":
     # 导入csv数据信息
     data = fp.cnts_read_csv('1')
+    cnts = fp.towards_read_img("1")
+
+    pair = towards.calculate_towards_vector(cnts, data)
+    towards.calculate_towards_angle(pair)
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
+
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)
     # 根据矩形包围盒四边中点获取距离最近的路
     srd = shortest_road_dist(box_vercoordinate, data)
-
+    sort(data,pair,shd,srd)
     fp.show_rect('1', data)
     print()

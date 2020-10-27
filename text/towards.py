@@ -10,6 +10,7 @@ import csv
 import json
 import sys
 import file_process as fp
+import math
 
 
 # 计算叉乘
@@ -74,7 +75,7 @@ def house_num(data, cnts):
 
 
 # 计算朝向
-def calculate_towards(cnts, data):
+def calculate_towards_vector(cnts, data):
     towards_center = []
     for i in range(len(cnts)):
         # 找到最小矩形，返回中心坐标，长宽，旋转角度
@@ -109,10 +110,47 @@ def calculate_towards(cnts, data):
                 pair.append([house_center, towards_center[label]])
 
     examination(pair)
+    return pair
 
+
+def calc_angle(x1, y1, x2, y2):
+    x = abs(x1 - x2)
+    y = abs(y1 - y2)
+    z = math.sqrt(x * x + y * y)
+    if (x1 == x2 and y1 == y2):
+        angle = 0
+    else:
+        angle = round(math.asin(y / z) / math.pi * 180)
+
+    if (x1 > x2 and y1 < y2):
+        angle = 180 - angle
+    elif (x1 > x2 and y1 > y2):
+        angle = 180 + angle
+    elif (x1 < x2 and y1 > y2):
+        angle = 360 - angle
+
+    return angle
+
+
+def calculate_towards_angle(pair):
+    for i in range(len(pair)):
+        angle = calc_angle(pair[i][0][0], pair[i][0][1], pair[i][1][0], pair[i][1][1])
+        pair[i].append(angle)
+    return pair
+
+
+def get_angle(center, pair):
+    for i in range(len(pair)):
+
+        if(center[0] == pair[i][0][0] and center[1] == pair[i][0][1]):
+            return pair[i][2]
+    print('节点对找不到内容呀，出错了')
 
 if __name__ == "__main__":
     cnts = fp.towards_read_img("1")
     data = fp.cnts_read_csv("1")
     house_num(data, cnts)
-    calculate_towards(cnts, data)
+    pair = calculate_towards_vector(cnts, data)
+    calculate_towards_angle(pair)
+    t = get_angle([555, 734], pair)
+    print()

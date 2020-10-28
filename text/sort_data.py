@@ -72,6 +72,7 @@ def shortest_house_dist(box_center):
             # KD Tree 搜索最近距离
             nd = tree.nearest_neighbour_search(m)
             min_dist = math.sqrt(distance(nd.split[0], m))
+            min_dist = float('%0.3f' % min_dist)
             # 存储一个block中每个建筑与其相距最近建筑的距离
             house_house_min_dist.append(nd.split[0])
             house_house_min_dist.append(min_dist)
@@ -127,6 +128,7 @@ def shortest_road_dist(box_vercoordinate, data):
                 if (min_dist > temp):
                     min_dist = temp
             min_dist = math.sqrt(min_dist)
+            min_dist = float('%0.3f' % min_dist)
             house_road_min_dist.append(min_dist)
         all_house_road_min_dist.append(house_road_min_dist)
 
@@ -179,7 +181,7 @@ def sort(data, pair, shd, srd):
             cell['area'] = get_area(data[i][j + 1])
             cell['side'] = get_side(box_vercoordinate[i][j])
             cell['angle'] = towards.get_angle(box_center[i][j], pair)
-            cell['dist_house'] =  shd[i][j]
+            cell['dist_house'] = shd[i][j]
             cell['dist_road'] = srd[i][j]
             block.append(cell)
         info.append(block)

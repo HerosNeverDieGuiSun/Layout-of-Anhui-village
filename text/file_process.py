@@ -30,7 +30,7 @@ def info_write_csv(info, filename):
             for key in info[i][j].keys():
                 info[i][j][key] = str(info[i][j][key])
     # 文件写入
-    with open('../CSV/' + filename + '_block_info.csv', 'a') as file:
+    with open('../CSV/' + filename + '_block_info.csv', 'w') as file:
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(info)
 

@@ -40,8 +40,9 @@ def min_all_rect(data):
 
 
 # 获取矩形包围盒面积函数
-def get_area(cnt):
-    area = cv2.contourArea(cnt)
+def get_area(side):
+    area = side[0] * side[1]
+    area = float('%0.3f' % area)
     return area
 
 
@@ -178,8 +179,8 @@ def sort(data, pair, shd, srd):
             cell['label'] = data[i][0][j]
             cell['center'] = box_center[i][j]
             cell['vercoordinate'] = box_vercoordinate[i][j].tolist()
-            cell['area'] = get_area(data[i][j + 1])
             cell['side'] = get_side(box_vercoordinate[i][j])
+            cell['area'] = get_area(cell['side'])
             cell['angle'] = towards.get_angle(box_center[i][j], pair)
             cell['dist_house'] = shd[i][j]
             cell['dist_road'] = srd[i][j]
@@ -204,5 +205,5 @@ if __name__ == "__main__":
     srd = shortest_road_dist(box_vercoordinate, data)
     info = sort(data, pair, shd, srd)
     fp.info_write_csv(info, '1')
-    # fp.show_rect('1', data)
+    fp.show_rect('1', data)
     print()

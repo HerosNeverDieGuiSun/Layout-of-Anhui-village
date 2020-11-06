@@ -18,18 +18,37 @@ def toarray(str):
     return arr
 
 
+def str2list(str):
+    l = []
+    if (len(str) == 9):
+        a = int(str[1:4])
+        b = int(str[5:8])
+        l.append(a)
+        l.append(b)
+    else:
+        print('转成list失败了')
+    return l
+
+
 def todict(str):
-    a = '{"name" : "john", "gender" : "male", "age": 28}'
-    b = json.loads(a)
     str = delchar(str)
     temp = json.loads(str)
-    print()
+    temp['label'] = int(temp['label'])
+    temp['center'] = str2list(temp['center'])
+    temp['vercoordinate'] = toarray(temp['vercoordinate']).tolist()
+    temp['side'] = toarray(temp['side']).tolist()
+    temp['area'] = float(temp['area'])
+    temp['angle'] = int(temp['angle'])
+    temp['dist_house'] = toarray(temp['dist_house']).tolist()
+    temp['dist_road'] = float(temp['dist_road'])
+    return temp
 
 
 # 删除'\'元素
 def delchar(str):
     a = str.replace('\'', "\"")
     return a
+
 
 # 从block_cnts.csv中读取数据
 def cnts_read_csv(filename):
@@ -67,4 +86,4 @@ def info_read_csv(filename):
     for i in range(len(data)):
         for j in range(len(data[i])):
             data[i][j] = todict(data[i][j])
-    print()
+    return data

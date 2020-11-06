@@ -6,5 +6,5 @@
 
 import data_process as dp
 
-dp.info_read_csv('1')
+data = dp.info_read_csv('1')
 

@@ -8,6 +8,12 @@
 import csv
 import json
 import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+import os
+import cv2
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
 # str转array坐标函数
@@ -71,6 +77,22 @@ def cnts_read_csv(filename):
     return data
 
 
+def road_read_csv(filename):
+    # 设置文件路径
+    CSV_FILE_PATH = '../CSV/' + filename + '_block_cnts.csv'
+    # 定义存储数据机构
+    data = []
+    road_area = []
+    # 数据读取
+    with open(CSV_FILE_PATH, 'r') as f:
+        file = csv.reader(f)
+        for line in file:
+            data.append(line)
+    for i in range(len(data)):
+        road_area.append(cv2.contourArea(toarray(data[i][-1])))
+    return road_area
+
+
 # 从block_info.csv中读取数据
 def info_read_csv(filename):
     # 设置文件路径
@@ -87,3 +109,13 @@ def info_read_csv(filename):
         for j in range(len(data[i])):
             data[i][j] = todict(data[i][j])
     return data
+
+
+def showBN(model):
+    edges = model.edges()
+    G = nx.MultiDiGraph()
+    for a, b in edges:
+        G.add_edge(a, b)
+    nx.draw(G, with_labels=True, edge_color='gray', node_color='skyblue', node_size=100, width=3)
+    plt.show()
+    print()

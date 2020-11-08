@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import pandas as pd
 from pgmpy.estimators import BayesianEstimator
+from pgmpy.inference import VariableElimination
 
 info = dp.info_read_csv('1')
 road_area = []
@@ -59,5 +60,9 @@ df = pd.DataFrame(all, columns=['block_area', 'house_num','type_0','type_1','typ
 model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
 for cpd in model.get_cpds():
     print(cpd)
+model_infer = VariableElimination(model)
+q = model_infer.query(variables=['type_2'], evidence={'block_area': 0,'house_num':4},joint=False)
+t = model_infer.map_query(variables=['num_0','num_1','num_2','num_3','num_5','num_6','num_7','num_8','num_9'], evidence={'house_num': 10})
+print(t)
 # dp.showBN(model)
-print(df)
+# print(df)

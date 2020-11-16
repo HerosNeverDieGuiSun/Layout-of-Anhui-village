@@ -22,6 +22,11 @@ def cnts_write_csv(block_all_data, filename):
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(block_all_data)
 
+def vdis_write_csv(dis,filename):
+    # 文件写入
+    with open('../CSV/' + filename + '_viliage_dis.csv', 'w') as file:
+        csvwriter = csv.writer(file, lineterminator='\n')
+        csvwriter.writerows(dis)
 
 def info_write_csv(info, filename):
     # 数据结构调整
@@ -117,6 +122,25 @@ def towards_select_range(hsv):
     cnts = towards_clean_cnts(cnts)
     return cnts
 
+# 得到中心点距离
+def get_viliage_center(filename):
+    # 读取图片
+    frame = cv2.imread("../CenterImg/" + filename + ".png")
+    # 高斯模糊
+    gs_frame = cv2.GaussianBlur(frame, (5, 5), 0)
+    # 转化成HSV图像
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    color_dist = {
+        # 提取绿色块
+        "green": {'Lower': np.array([69, 250, 230]), 'Upper': np.array([75, 255, 240])},
+    }
+    # 选取范围
+    inRange_hsv = cv2.inRange(hsv, color_dist["green"]['Lower'], color_dist["green"]['Upper'])
+    # 提取轮廓
+    cnts = cv2.findContours(inRange_hsv.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[-2]
+    center = cv2.minAreaRect(cnts[0])[0]
+    return center
 
 # 提取房屋和道路轮廓函数
 def house_select_range(hsv):

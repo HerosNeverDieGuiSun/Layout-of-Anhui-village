@@ -24,7 +24,7 @@ for i in range(len(data)):
     house_type.append(data[i][0])
 
 model = BayesianModel([('block_area', 'house_num'), ('block_area', 'type_0'),
-                       ('block_area', 'type_1'), ('block_area', 'type_2'), ('block_area', 'type_3'),
+                       ('block_area', 'type_1'), ('block_area', 'type_2'), ('block_area', 'type_3'),('block_area', 'type_4'),
                        ('block_area', 'type_5'), ('block_area', 'type_6'), ('block_area', 'type_7'),
                        ('block_area', 'type_8'), ('block_area', 'type_9'), ('house_num', 'type_0'),
                        ('house_num', 'type_1'), ('house_num', 'type_2'), ('house_num', 'type_3'),
@@ -61,8 +61,11 @@ model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
 for cpd in model.get_cpds():
     print(cpd)
 model_infer = VariableElimination(model)
+
+
+
 q = model_infer.query(variables=['type_2'], evidence={'block_area': 0,'house_num':4},joint=False)
-t = model_infer.map_query(variables=['num_0','num_1','num_2','num_3','num_5','num_6','num_7','num_8','num_9'], evidence={'house_num': 10})
+t = model_infer.map_query(variables=['house_num','type_0','type_1','type_2','type_3','type_5','type_6','type_7','type_8','type_9'], evidence={'block_area': 2})
 print(t)
 # dp.showBN(model)
 # print(df)

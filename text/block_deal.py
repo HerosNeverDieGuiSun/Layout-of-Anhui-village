@@ -146,9 +146,10 @@ if __name__ == "__main__":
     data = fp.label_read_img('1')
     # 判断建筑是否在block内
     block_all_data = inhere(data)
+
     # 提取所有有效block数据
     fp.cnts_write_csv(block_all_data, '1')
 
     # 图像展示
     # road_data = data[10]
-    # showimg(frame, block_all_data[3])
+

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- 
 # @Time : 2020/10/12 19:44 
-# @Author : zzd、zl
+# @Author : zl、zzd
 # @File : sort_data.py
 # @desc:  将csv的记录整理成对应的数据格式
 
@@ -201,6 +201,7 @@ if __name__ == "__main__":
     # 导入csv数据信息
     data = fp.cnts_read_csv('1')
     cnts = fp.towards_read_img("1")
+
     viliage_center = fp.get_viliage_center('1')
     vdis = viliage_dis(data, viliage_center)
     vdis = [vdis]
@@ -208,11 +209,13 @@ if __name__ == "__main__":
     towards.calculate_towards_angle(pair)
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     fp.vdis_write_csv(vdis, '1')
+
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)
     # 根据矩形包围盒四边中点获取距离最近的路
     srd = shortest_road_dist(box_vercoordinate, data)
+
     info = sort(data, pair, shd, srd)
     fp.info_write_csv(info, '1')
     fp.show_rect('1', data)

@@ -165,12 +165,14 @@ def get_side(vercoordinate):
         side.append(a)
     return side
 
+
 # 得到每一个block到村子中心的距离
-def viliage_dis(data,viliage_center):
+def viliage_dis(data, viliage_center):
     temp = []
     for i in range(len(data)):
-        temp.append(str(int(distance(cv2.minAreaRect(data[i][-1])[0],viliage_center))))
+        temp.append(str(int(distance(cv2.minAreaRect(data[i][-1])[0], viliage_center))))
     return temp
+
 
 # 数据整理，生成字典
 def sort(data, pair, shd, srd):
@@ -200,12 +202,12 @@ if __name__ == "__main__":
     data = fp.cnts_read_csv('1')
     cnts = fp.towards_read_img("1")
     viliage_center = fp.get_viliage_center('1')
-    vdis = viliage_dis(data,viliage_center)
+    vdis = viliage_dis(data, viliage_center)
     vdis = [vdis]
     pair = towards.calculate_towards_vector(cnts, data)
     towards.calculate_towards_angle(pair)
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
-    fp.vdis_write_csv(vdis,'1')
+    fp.vdis_write_csv(vdis, '1')
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)
@@ -214,4 +216,3 @@ if __name__ == "__main__":
     info = sort(data, pair, shd, srd)
     fp.info_write_csv(info, '1')
     fp.show_rect('1', data)
-

@@ -125,6 +125,8 @@ def inhere(data):
         iter = 0
         while (iter < len(block_data)):
             if (len(block_data[iter]) == 1):
+                print()
+                del type[iter]
                 del block_data[iter]
             else:
                 iter = iter + 1
@@ -137,6 +139,8 @@ def inhere(data):
         if (len(block_data[0]) != 0):
             # 将单个block信息添加到block_all_data中
             block_all_data.append(block_data)
+        if k == 10:
+            print()
         k = k + 1
 
     return block_all_data

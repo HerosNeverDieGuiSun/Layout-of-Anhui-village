@@ -341,25 +341,25 @@ def get_house_area_proportion(filename_label):
                             all_house_area.append(t)
     # print(all_house_area)  # 测试
 
-    result = {}  # 每个block类别及里面房屋类别的面积集合:如'04':[]
+    temp = {}  # 每个block类别及里面房屋类别的面积集合:如'04':[]
     for i in all_house_area:
         mid = str(i[0])
         mid += str(i[1])
         # print(mid)  # 测试
-        if(mid in result.keys()):
-            result[mid].append(i[2])
+        if(mid in temp.keys()):
+            temp[mid].append(i[2])
         else:
-            result[mid] = []
-            result[mid].append(i[2])
-    # print(result)  # 测试
+            temp[mid] = []
+            temp[mid].append(i[2])
+    # print(temp)  # 测试
 
     # 计算block类别中各个房屋类别平均面积
     house_average_area = []
-    for i in result.keys():
+    for i in temp.keys():
         t = []
         t.append(int(i[0]))
         t.append(int(i[1]))
-        t.append((sum(result[i])/len(result[i])))
+        t.append((sum(temp[i])/len(temp[i])))
         house_average_area.append(t)
     # print(house_average_area)  # 测试
 

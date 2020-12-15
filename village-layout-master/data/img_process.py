@@ -4,7 +4,7 @@
 # @File : img_process.py
 # @desc:
 
-from data.dataset import cnts_read_csv
+from data import get_frequency_files as dp
 import numpy as np
 import cv2
 import os
@@ -18,7 +18,7 @@ def init_canvas(width, height, color=(255, 255, 255)):
 
 # 轮廓图像展示函数
 def show_block(filename, cnts_data, label):
-    dest_dir = f"../block_img"
+    dest_dir = f"../Img_block"
     # 如果没有block_img文件夹则创建
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
@@ -63,6 +63,6 @@ def min_rect(house):
 
 
 if __name__ == '__main__':
-    a = cnts_read_csv('1')
+    a = dp.cnts_read_csv('1')
     for i in range(len(a)):
         show_block('1', a[i], i)

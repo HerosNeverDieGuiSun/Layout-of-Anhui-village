@@ -88,8 +88,9 @@ def shortest_house_dist(box_center):
 
 
 # 寻找block中的建筑与最近路的距离
-def shortest_road_dist(box_vercoordinate, data):
+def shortest_road_dist(box_center,box_vercoordinate, data):
     all_house_road_min_dist = []
+    all_house_towards = []
     y = [0, 1, 2]
     a = y[-1]
     # # 一条block数据
@@ -107,6 +108,7 @@ def shortest_road_dist(box_vercoordinate, data):
         house_side_len_center = [[] for m in range(len(box_vercoordinate[i]))]
         # house_road_min_dist = [[] for n in range(len(box_vercoordinate[i]))]
         house_road_min_dist = []
+        house_toward = []
         for l in range(len(box_vercoordinate[i])):
             k = 0
 
@@ -123,18 +125,40 @@ def shortest_road_dist(box_vercoordinate, data):
             tree.build_tree(road_point, road_point_num)
             # KD Tree 搜索最近距离
             min_dist = sys.maxsize
+            min_nd = []
             for s in range(len(house_side_len_center[l])):
                 nd = tree.nearest_neighbour_search(house_side_len_center[l][s])
                 temp = distance(nd.split[0], house_side_len_center[l][s])
                 if (min_dist > temp):
                     min_dist = temp
+                    min_nd = nd.split[0]
+
             min_dist = math.sqrt(min_dist)
             min_dist = float('%0.3f' % min_dist)
             house_road_min_dist.append(min_dist)
+            house_toward.append(get_angle(min_nd,box_center[i][l]))
         all_house_road_min_dist.append(house_road_min_dist)
+        all_house_towards.append(house_toward)
 
-    return all_house_road_min_dist
+    return all_house_road_min_dist,all_house_towards
 
+# 获取朝向
+def get_angle(min_nd,box_center):
+    x = abs(min_nd[0]-box_center[0])
+    y = abs(min_nd[1]-box_center[1])
+    z = math.sqrt(x * x + y * y)
+    if (min_nd[0] == box_center[0] and min_nd[1] == box_center[1]):
+        angle = 0
+    else:
+        angle = round(math.asin(y / z) / math.pi * 180)
+
+    if (box_center[0] > min_nd[0] and box_center[1] < min_nd[1]):
+        angle = 180 - angle
+    elif (box_center[0] > min_nd[0] and box_center[1] > min_nd[1]):
+        angle = 180 + angle
+    elif (box_center[0] < min_nd[0] and box_center[1] > min_nd[1]):
+        angle = 360 - angle
+    return angle
 
 # 计算两点间的距离
 def distance(point1, point2):
@@ -175,7 +199,7 @@ def viliage_dis(data, viliage_center):
 
 
 # 数据整理，生成字典
-def sort(data, pair, shd, srd):
+def sort(data, all_house_towards,shd, srd):
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     box_center, box_vercoordinate = min_all_rect(data)
     # 初始化单元格信息
@@ -189,7 +213,7 @@ def sort(data, pair, shd, srd):
             cell['vercoordinate'] = box_vercoordinate[i][j].tolist()
             cell['side'] = get_side(box_vercoordinate[i][j])
             cell['area'] = get_area(cell['side'])
-            cell['angle'] = towards.get_angle(box_center[i][j], pair)
+            cell['angle'] = all_house_towards[i][j]
             cell['dist_house'] = shd[i][j]
             cell['dist_road'] = srd[i][j]
             block.append(cell)
@@ -199,23 +223,24 @@ def sort(data, pair, shd, srd):
 
 if __name__ == "__main__":
     # 导入csv数据信息
-    data = fp.cnts_read_csv('1')
-    cnts = fp.towards_read_img("1")
+    data = fp.cnts_read_csv('2')
 
+
+    # cnts = fp.towards_read_img("2")
     viliage_center = fp.get_viliage_center('1')
     vdis = viliage_dis(data, viliage_center)
     vdis = [vdis]
-    pair = towards.calculate_towards_vector(cnts, data)
-    towards.calculate_towards_angle(pair)
-    # 获取最小矩形包围盒中心点坐标及四个顶点坐标
+    # pair = towards.calculate_towards_vector(cnts, data)
+    # towards.calculate_towards_angle(pair)
+    # # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     fp.vdis_write_csv(vdis, '1')
-
+    #
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)
     # 根据矩形包围盒四边中点获取距离最近的路
-    srd = shortest_road_dist(box_vercoordinate, data)
-
-    info = sort(data, pair, shd, srd)
-    fp.info_write_csv(info, '1')
-    fp.show_rect('1', data)
+    srd,all_house_towards = shortest_road_dist(box_center,box_vercoordinate, data)
+    #
+    info = sort(data, all_house_towards, shd, srd)
+    fp.info_write_csv(info, '2')
+    # fp.show_rect('1', data)

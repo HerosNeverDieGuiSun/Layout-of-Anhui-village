@@ -200,6 +200,7 @@ def show_cnts(filename, cnts):
     y = frame.shape[0]
     # 生成指定大小的画布
     canvas = init_canvas(x, y, color=(255, 255, 255))
+    # for i in range(len(cnts)):
     cv2.polylines(canvas, cnts, 1, 0)
     cv2.imshow("frame", canvas)
     cv2.imwrite("canny.jpg", canvas)

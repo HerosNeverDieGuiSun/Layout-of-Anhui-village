@@ -193,15 +193,25 @@ def init_canvas(width, height, color=(255, 255, 255)):
     return canvas
 
 
-# 轮廓图像展示函数
-def show_cnts(filename, cnts):
+# 轮廓图像展示函数,使用的data数据
+def show_cnts(filename, data):
+
+    cnts = []
+    for i in range(len(data)):
+        temp1 = []
+        for j in range(len(data[i])):
+            if j != 0:
+                temp1.append(data[i][j])
+        cnts.append(temp1)
+
+
     frame = cv2.imread('../Label/' + filename + '.png')
     x = frame.shape[1]
     y = frame.shape[0]
     # 生成指定大小的画布
     canvas = init_canvas(x, y, color=(255, 255, 255))
-    # for i in range(len(cnts)):
-    cv2.polylines(canvas, cnts, 1, 0)
+    for i in range(len(cnts)):
+        cv2.polylines(canvas, cnts[i], 1, 0)
     cv2.imshow("frame", canvas)
     cv2.imwrite("canny.jpg", canvas)
     cv2.waitKey(0)

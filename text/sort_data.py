@@ -223,17 +223,19 @@ def sort(data, all_house_towards,shd, srd):
 
 if __name__ == "__main__":
     # 导入csv数据信息
-    data = fp.cnts_read_csv('2')
+    data = fp.cnts_read_csv('1')
+
+    # fp.show_cnts('2',data)
 
 
     # cnts = fp.towards_read_img("2")
-    viliage_center = fp.get_viliage_center('1')
-    vdis = viliage_dis(data, viliage_center)
-    vdis = [vdis]
+    # viliage_center = fp.get_viliage_center('1')
+    # vdis = viliage_dis(data, viliage_center)
+    # vdis = [vdis]
     # pair = towards.calculate_towards_vector(cnts, data)
     # towards.calculate_towards_angle(pair)
     # # 获取最小矩形包围盒中心点坐标及四个顶点坐标
-    fp.vdis_write_csv(vdis, '1')
+    # fp.vdis_write_csv(vdis, '1')
     #
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
@@ -242,5 +244,5 @@ if __name__ == "__main__":
     srd,all_house_towards = shortest_road_dist(box_center,box_vercoordinate, data)
     #
     info = sort(data, all_house_towards, shd, srd)
-    fp.info_write_csv(info, '2')
+    fp.info_write_csv(info, '1')
     # fp.show_rect('1', data)

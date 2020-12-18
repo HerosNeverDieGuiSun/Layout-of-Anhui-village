@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 import os
 import cv2
-
+from data import data_process as dp
 
 def to_array(str):
     """
@@ -69,7 +69,7 @@ def to_dict(str):
     return temp
 
 
-def cnts_read_csv(filename):
+def cnts_read_csv():
     """
     从CSV的_block_cnts.csv中读取所有block数据(block房屋类型,house轮廓数据,road数据)
     Parameters
@@ -78,7 +78,7 @@ def cnts_read_csv(filename):
     """
 
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_block_cnts.csv'
+    CSV_FILE_PATH = '../NEW_CSV/block_cnts.csv'
     # 定义存储数据结构
     data = []
     # 数据读取
@@ -93,7 +93,7 @@ def cnts_read_csv(filename):
     return data
 
 
-def road_read_csv(filename):
+def road_read_csv():
     """
     从CSV的_block_cnts.csv中读取所有的road数据,返回所有的block面积
     Parameters
@@ -102,7 +102,7 @@ def road_read_csv(filename):
     """
 
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_block_cnts.csv'
+    CSV_FILE_PATH = '../NEW_CSV/block_cnts.csv'
     # 定义存储数据结构
     data = []
     road_area = []
@@ -117,7 +117,7 @@ def road_read_csv(filename):
     return road_area
 
 
-def info_read_csv(filename):
+def info_read_csv():
     """
     从CSV的_block_info.csv中读取每个block中详细房屋数据(label,center,vercoordinate,side,area,angle,dist_house,dist_road)
     Parameters
@@ -126,7 +126,7 @@ def info_read_csv(filename):
     """
 
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_block_info.csv'
+    CSV_FILE_PATH = '../NEW_CSV/block_info.csv'
     # 定义存储数据机构
     data = []
     # 数据读取
@@ -140,7 +140,7 @@ def info_read_csv(filename):
     return data
 
 
-def road_area_divide(cnts_data, road_area, info_data, filename_label):
+def road_area_divide(cnts_data, road_area, info_data):
     """
     根据block面积大小将其划分为5个类别
     Parameters
@@ -195,15 +195,15 @@ def road_area_divide(cnts_data, road_area, info_data, filename_label):
                 cnts_block_categories[h][m] = cnts_block_categories[h][m].tolist()
 
     # 生成两个经block类别划分后的文件
-    with open(dest_dir + '/' + filename_label + '_cnts_block_categories.csv', 'w') as file:
+    with open(dest_dir + '/cnts_block_categories.csv', 'w') as file:
         csv_writer = csv.writer(file, lineterminator='\n')
         csv_writer.writerows(cnts_block_categories)
-    with open(dest_dir + '/' + filename_label + '_info_block_categories.csv', 'w') as file:
+    with open(dest_dir + '/info_block_categories.csv', 'w') as file:
         csv_writer = csv.writer(file, lineterminator='\n')
         csv_writer.writerows(info_block_categories)
 
 
-def get_house_categories_frequency(filename_label):
+def get_house_categories_frequency():
     """
     获取按block类别划分后的各个房屋类别出现的频率文件
     Parameters
@@ -213,7 +213,7 @@ def get_house_categories_frequency(filename_label):
 
     dest_dir = f"../frequency_files"
     # 设置文件路径
-    CSV_FILE_PATH = '../frequency_files/' + filename_label + '_cnts_block_categories.csv'
+    CSV_FILE_PATH = '../frequency_files/cnts_block_categories.csv'
     # 定义存储数据结构
     data = []
     # 数据读取
@@ -258,12 +258,12 @@ def get_house_categories_frequency(filename_label):
             t.append(float('%0.3f' % (num_count[j] / total)))
             frequency_house_category.append(t)
     # print(frequency_house_category)
-    with open(dest_dir + '/' + filename_label + '_house_categories_frequency.csv', 'w') as file:
+    with open(dest_dir + '/house_categories_frequency.csv', 'w') as file:
         csv_writer = csv.writer(file, lineterminator='\n')
         csv_writer.writerows(frequency_house_category)
 
 
-def get_house_area_proportion(filename_label):
+def get_house_area_proportion():
     """
     获取选择的block类别的 各类别房屋平均尺寸与该类别block尺寸占比率 文件
     Parameters
@@ -275,7 +275,7 @@ def get_house_area_proportion(filename_label):
 
     #################  获取当前村庄图片中各个block类别的平均面积  #################
     # 设置文件路径
-    CSV_FILE_PATH_1 = '../frequency_files/' + filename_label + '_cnts_block_categories.csv'
+    CSV_FILE_PATH_1 = '../frequency_files/cnts_block_categories.csv'
     # 定义存储数据结构
     cnts_data = []
     road_area = []
@@ -312,7 +312,7 @@ def get_house_area_proportion(filename_label):
 
     #################  获取当前村庄图片中各个block类别中各房屋类别的平均面积  #################
     # 设置文件路径
-    CSV_FILE_PATH_2 = '../frequency_files/' + filename_label +'_info_block_categories.csv'
+    CSV_FILE_PATH_2 = '../frequency_files/info_block_categories.csv'
     # 定义存储数据结构
     info_data = []
     # 数据读取
@@ -369,18 +369,27 @@ def get_house_area_proportion(filename_label):
             if house_average_area[j][0] == block_average_area[i][0]:
                 house_average_area[j][2] = float('%0.3f' % float(house_average_area[j][2]/block_average_area[i][1]))
 
-    with open(dest_dir + '/' + filename_label + '_house_area_proportion.csv', 'w') as file:
+    with open(dest_dir + '/house_area_proportion.csv', 'w') as file:
         csv_writer = csv.writer(file, lineterminator='\n')
         csv_writer.writerows(house_average_area)
 
 
 
 if __name__ == '__main__':
-    # 测试
-    a = cnts_read_csv('1')
-    b = road_read_csv('1')
-    c = info_read_csv('1')
-    road_area_divide(a, b, c, '1')
 
-    get_house_categories_frequency('1')
-    get_house_area_proportion('1')
+    # 首先合并CSV文件夹中各个村子的cnts和info文件到新文件夹：NEW_CSV
+    # 之后的操作均在NEW_CSV中的各个文件上进行
+    dp.village_merge()
+
+    # # 划分block类别及
+    # a = cnts_read_csv()
+    # b = road_read_csv()
+    # c = info_read_csv()
+    # road_area_divide(a, b, c)
+    #
+    # # 获取房屋频率文件和房屋面积占比文件
+    # get_house_categories_frequency()
+    # get_house_area_proportion()
+
+
+

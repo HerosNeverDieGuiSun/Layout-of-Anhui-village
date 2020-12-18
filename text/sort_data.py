@@ -228,14 +228,14 @@ if __name__ == "__main__":
     # fp.show_cnts('2',data)
 
     # cnts = fp.towards_read_img("2")
-    # viliage_center = fp.get_viliage_center('1')
-    # vdis = viliage_dis(data, viliage_center)
-    # vdis = [vdis]
+    viliage_center = fp.get_viliage_center('1')
+    vdis = viliage_dis(data, viliage_center)
+    vdis = [vdis]
     # pair = towards.calculate_towards_vector(cnts, data)
     # towards.calculate_towards_angle(pair)
+    fp.vdis_write_csv(vdis, '1')
+
     # # 获取最小矩形包围盒中心点坐标及四个顶点坐标
-    # fp.vdis_write_csv(vdis, '1')
-    #
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)

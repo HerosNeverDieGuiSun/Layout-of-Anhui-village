@@ -24,7 +24,7 @@ def cnts_write_csv(block_all_data, filename):
 
 def vdis_write_csv(dis,filename):
     # 文件写入
-    with open('../CSV/' + filename + '_viliage_dis.csv', 'w') as file:
+    with open('../CSV/' + filename + '_village_dis.csv', 'w') as file:
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(dis)
 

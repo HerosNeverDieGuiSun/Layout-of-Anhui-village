@@ -4,7 +4,7 @@
 # @File : img_process.py
 # @desc:
 
-from data import get_frequency_files as dp
+from data import data_process as dp
 import numpy as np
 import cv2
 import os
@@ -23,7 +23,7 @@ def show_block(filename, cnts_data, label):
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
 
-    frame = cv2.imread('../Label/' + filename + '.png')
+    frame = cv2.imread('../LABEL/' + filename + '.png')
     x = frame.shape[1]
     y = frame.shape[0]
     # 生成指定原始图片大小的画布
@@ -63,6 +63,7 @@ def min_rect(house):
 
 
 if __name__ == '__main__':
+    # 其他文件已改动，该文件代码停止使用
     a = dp.cnts_read_csv('1')
     for i in range(len(a)):
         show_block('1', a[i], i)

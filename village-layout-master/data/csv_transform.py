@@ -103,16 +103,18 @@ def create_txt_data_divide(cnts_block_cate, info_block_cate, vdis, start_num, de
 
 if __name__ == "__main__":
     # # 读取原始的csv数据
-    # cnts = dp.cnts_read_csv('1')
-    # info = dp.info_read_csv('1')
-    # vdis = dp.vdis_read_csv('1')
+    # cnts = dp.cnts_read_csv()
+    # info = dp.info_read_csv()
+    # vdis = dp.vdis_read_csv()
     # # 获取每个block的txt
     # create_txt_data(cnts, info, vdis, 0, save_txt_dir)
 
     # # 读取划分block类别后的csv数据：
     # 数据来自于frequency_files里面的1_cnts_block_categories.csv和1_info_block_categories.csv
-    cnts_block_cate = dp.cnts_block_categories_read_csv('1')
-    info_block_cate = dp.info_block_categories_read_csv('1')
-    vdis = dp.vdis_read_csv('1')
+    cnts_block_cate = dp.cnts_block_categories_read_csv()
+    info_block_cate = dp.info_block_categories_read_csv()
+    vdis = dp.vdis_read_csv()
     # 获取划分后的每个block类别的txt
     create_txt_data_divide(cnts_block_cate, info_block_cate, vdis, 0, save_txt_dir)
+
+

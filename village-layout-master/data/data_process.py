@@ -53,9 +53,9 @@ def delchar(str):
 
 
 # 从block_cnts.csv中读取数据
-def cnts_read_csv(filename):
+def cnts_read_csv():
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_block_cnts.csv'
+    CSV_FILE_PATH = '../NEW_CSV/block_cnts.csv'
     # 定义存储数据机构
     data = []
 
@@ -90,9 +90,9 @@ def road_read_csv(filename):
 
 
 # 从block_info.csv中读取数据
-def info_read_csv(filename):
+def info_read_csv():
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_block_info.csv'
+    CSV_FILE_PATH = '../NEW_CSV/block_info.csv'
     # 定义存储数据机构
     data = []
     # 数据读取
@@ -107,10 +107,10 @@ def info_read_csv(filename):
     return data
 
 
-# 从CSV的_village_dis.csv中读取每个block到村中心的距离数据
-def vdis_read_csv(filename):
+# 从NEW_CSV的village_dis.csv中读取每个block到村中心的距离数据
+def vdis_read_csv():
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_village_dis.csv'
+    CSV_FILE_PATH = '../NEW_CSV/village_dis.csv'
     vdis = []
     # 数据读取
     with open(CSV_FILE_PATH, 'r') as f:
@@ -123,10 +123,10 @@ def vdis_read_csv(filename):
     return vdis[0]
 
 
-# 从_cnts_block_categories.csv中读取数据
-def cnts_block_categories_read_csv(filename):
+# 从cnts_block_categories.csv中读取数据
+def cnts_block_categories_read_csv():
     # 设置文件路径
-    CSV_FILE_PATH = '../frequency_files/' + filename + '_cnts_block_categories.csv'
+    CSV_FILE_PATH = '../frequency_files/cnts_block_categories.csv'
 
     # 定义存储数据机构
     data = []
@@ -143,11 +143,11 @@ def cnts_block_categories_read_csv(filename):
     return data
 
 
-# 从_info_block_categories.csv中读取数据
-def info_block_categories_read_csv(filename):
+# 从info_block_categories.csv中读取数据
+def info_block_categories_read_csv():
 
     # 设置文件路径
-    CSV_FILE_PATH = '../frequency_files/' + filename +'_info_block_categories.csv'
+    CSV_FILE_PATH = '../frequency_files/info_block_categories.csv'
     # 定义存储数据机构
     data = []
     # 数据读取
@@ -162,3 +162,50 @@ def info_block_categories_read_csv(filename):
                 str1 = delchar(data[i][j])
                 data[i][j] = json.loads(str1)
     return data
+
+
+# 合并各个村子的CSV文件
+def village_merge():
+    # 创建保存合并后的csv 文件夹
+    save_new_csv_dir = '../NEW_CSV'
+    if not os.path.exists(save_new_csv_dir):
+        os.mkdir(save_new_csv_dir)
+
+    # 定义存储数据机构
+    cnts_data = []
+    info_data = []
+    vdis_data = []
+
+    for i in range(2):
+        # 设置文件路径
+        CSV_FILE_PATH_cnts = '../CSV/' + str(i + 1) + '_block_cnts.csv'
+        CSV_FILE_PATH_info = '../CSV/' + str(i + 1) + '_block_info.csv'
+        CSV_FILE_PATH_vds = '../CSV/' + str(i + 1) + '_village_dis.csv'
+        # 数据读取
+        with open(CSV_FILE_PATH_cnts, 'r') as cnts_f:
+            cnts_file = csv.reader(cnts_f)
+            for line in cnts_file:
+                cnts_data.append(line)
+        with open(CSV_FILE_PATH_info, 'r') as info_f:
+            info_file = csv.reader(info_f)
+            for line in info_file:
+                info_data.append(line)
+        with open(CSV_FILE_PATH_vds, 'r') as vdis_f:
+            vdis_file = csv.reader(vdis_f)
+            for line in vdis_file:
+                if i == 0:
+                    vdis_data.append(line)
+                else:
+                    for j in range(len(line)):
+                        vdis_data[0].append(line[j])
+
+    with open(save_new_csv_dir + '/block_cnts.csv', 'w') as file:
+        csv_writer = csv.writer(file, lineterminator='\n')
+        csv_writer.writerows(cnts_data)
+    with open(save_new_csv_dir + '/block_info.csv', 'w') as file:
+        csv_writer = csv.writer(file, lineterminator='\n')
+        csv_writer.writerows(info_data)
+    with open(save_new_csv_dir + '/village_dis.csv', 'w') as file:
+        csv_writer = csv.writer(file, lineterminator='\n')
+        csv_writer.writerows(vdis_data)
+    # print()  # 测试

@@ -33,8 +33,6 @@ class CategoryDataset(Dataset):
             cnts = eval(cnts_f.read())
         with open(self.data_dir[1] + '/' + txt_name[1], 'r') as info_f:
             info = eval(info_f.read())
-
-        # 还没改到这！
         block_tensor = RenderedComposite(cnts, info).get_composite()
         return block_tensor
 

@@ -227,7 +227,6 @@ if __name__ == "__main__":
 
     # fp.show_cnts('2',data)
 
-
     # cnts = fp.towards_read_img("2")
     # viliage_center = fp.get_viliage_center('1')
     # vdis = viliage_dis(data, viliage_center)
@@ -246,3 +245,4 @@ if __name__ == "__main__":
     info = sort(data, all_house_towards, shd, srd)
     fp.info_write_csv(info, '1')
     # fp.show_rect('1', data)
+

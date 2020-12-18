@@ -147,8 +147,8 @@ def get_angle(center, pair):
     print('节点对找不到内容呀，出错了')
 
 if __name__ == "__main__":
-    cnts = fp.towards_read_img("1")
-    data = fp.cnts_read_csv("1")
+    cnts = fp.towards_read_img("2")
+    data = fp.cnts_read_csv("2")
     house_num(data, cnts)
     pair = calculate_towards_vector(cnts, data)
     calculate_towards_angle(pair)

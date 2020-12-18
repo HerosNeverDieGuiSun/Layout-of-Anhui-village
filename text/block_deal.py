@@ -155,5 +155,6 @@ if __name__ == "__main__":
     fp.cnts_write_csv(block_all_data, '1')
 
     # 图像展示
-    # road_data = data[10]
+
+
 

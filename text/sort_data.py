@@ -236,11 +236,9 @@ if __name__ == "__main__":
     fp.vdis_write_csv(vdis, '1')
 
     # # 获取最小矩形包围盒中心点坐标及四个顶点坐标
-<<<<<<< HEAD
-=======
+
     fp.vdis_write_csv(vdis, '1')
     #
->>>>>>> d54a742... 完成了角度相关的算法
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)

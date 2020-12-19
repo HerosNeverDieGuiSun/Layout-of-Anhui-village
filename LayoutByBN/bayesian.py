@@ -18,6 +18,7 @@ import math
 from pgmpy.sampling import GibbsSampling
 from pgmpy.sampling import BayesianModelSampling
 from pgmpy.factors.discrete import State
+from intersected import is_intersected
 
 
 # 整理信息，得到想要的数据
@@ -88,29 +89,10 @@ def sort(filename, info, data, vdis):
 
 # 定义BN，进行测试
 def initial_BN(bn1_info, bn2_info, data, info):
-    # model = BayesianModel([('block_area', 'house_num'), ('block_area', 'type_0'),
-    #                        ('block_area', 'type_1'), ('block_area', 'type_2'), ('block_area', 'type_3'),
-    #                        ('block_area', 'type_4'),
-    #                        ('block_area', 'type_5'), ('block_area', 'type_6'), ('block_area', 'type_7'),
-    #                        ('block_area', 'type_8'), ('block_area', 'type_9'), ('house_num', 'type_0'),
-    #                        ('house_num', 'type_1'), ('house_num', 'type_2'), ('house_num', 'type_3'),
-    #                        ('house_num', 'type_4'),
-    #                        ('house_num', 'type_5'), ('house_num', 'type_6'), ('house_num', 'type_7'),
-    #                        ('house_num', 'type_8'), ('house_num', 'type_9'), ('type_0', 'num_0'),
-    #                        ('type_1', 'num_1'), ('type_2', 'num_2'), ('type_3', 'num_3'),
-    #                        ('type_4', 'num_4'), ('type_5', 'num_5'), ('type_6', 'num_6'),
-    #                        ('type_7', 'num_7'), ('type_8', 'num_8'), ('type_9', 'num_9')])
     model1 = BayesianModel([('block_area', 'house_num'), ('vdis', 'house_num')])
     df1 = pd.DataFrame(bn1_info, columns=['block_area', 'vdis', 'house_num'])
     model1.fit(df1, estimator=BayesianEstimator, prior_type="BDeu")
-
     model1_infer = VariableElimination(model1)
-    # for i in range(10):
-    #     for j in range(5):
-    #         q = model1_infer.map_query(variables=['house_num'], evidence={'block_area': i, 'vdis': j})
-    #         print('block_area=' + str(i) + ' and vdis=' + str(j) + ' and house_num = ' + str(q))
-    # for factor in q.values():
-    #     print(factor)
 
     model2 = BayesianModel(
         [('block_area', 'house_num'), ('vdis', 'house_num'), ('block_area', 'most_type'), ('vdis', 'most_type'),
@@ -146,33 +128,100 @@ def initial_BN(bn1_info, bn2_info, data, info):
 def two_house_angle(info, data, type1, type2):
     train_data = []
     for i in range(len(info)):
+        # 获取符合要求的节点对
         index = get_pair(data[i][0], type1, type2)
-        for j in range(len(index)):
-            temp2 = []
-            angle = get_angle(info[i][index[j][0]]['center'], info[i][index[j][1]]['center'])
-            direction = angle2direction(angle)
-            temp2.append(type1)
-            temp2.append(type2)
-            temp2.append(direction)
-            train_data.append(temp2)
 
+        for j in range(len(index)):
+            angle = get_angle(info[i][index[j][0]]['center'], info[i][index[j][1]]['center'])
+            dis = two_house_dis(info[i][index[j][0]], info[i][index[j][1]], index)
+            direction = angle2direction(angle)
+            # train_data.append([type1, type2, direction,dis])
+            train_data.append([type1, type2, direction])
+
+    # model = BayesianModel([('type1', 'direction'), ('type2', 'direction'),('type1', 'dis'),('type2', 'dis')])
     model = BayesianModel([('type1', 'direction'), ('type2', 'direction')])
+    # df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction','dis'])
     df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction'])
     model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
     model_infer = VariableElimination(model)
     # direction = model_infer.map_query(variables=['direction'], evidence={'type1': type1, 'type2': type2})[
     #     'direction']
     inference = BayesianModelSampling(model)
-    evidence = [State(var='type1', state=type1),State(var='type2', state=type2)]
-
+    evidence = [State(var='type1', state=type1), State(var='type2', state=type2)]
     direction_infer = inference.rejection_sample(evidence=evidence, size=1, return_type='dataframe')
 
     type1_cols = direction_infer['type1']
-    direction_infer = direction_infer.drop('type1',axis = 1)
-    direction_infer.insert(0,'type1',type1_cols)
+    direction_infer = direction_infer.drop('type1', axis=1)
+    direction_infer.insert(0, 'type1', type1_cols)
 
     direction_infer = direction_infer.values.tolist()
     return direction_infer[0]
+
+
+# 获取两个房子的之间的距离
+def two_house_dis(type1, type2, index):
+    # # 分别计算两矩形中心点在X轴和Y轴的距离
+    # dx = abs(type1['center'][0] - type2['center'][0])
+    # dy = abs(type1['center'][1] - type2['center'][1])
+
+    # a = is_intersected([1,1],[2,2],[1,-1],[-1,1])
+    line1 = search_edge(type1, type2, type1)
+    line2 = search_edge(type1, type2, type2)
+    A1, B1, C1 = generate_equation(line1[0][0], line1[0][1], line1[1][0], line1[1][1])
+    A2, B2, C2 = generate_equation(line2[0][0], line2[0][1], line2[1][0], line2[1][1])
+    point_list1 = generate_point(A1, B1, C1, line1)
+    point_list2 = generate_point(A2, B2, C2, line2)
+    min_dis = get_distance(point_list1[0], point_list2[0])
+    for i in range(len(point_list1)):
+        for j in range(len(point_list2)):
+            dis = get_distance(point_list1[i], point_list2[j])
+            if dis < min_dis:
+                min_dis = dis
+    return min_dis
+
+
+def get_distance(point1, point2):
+    x = abs(point1[0] - point2[0])
+    y = abs(point1[1] - point2[1])
+    dis = round(math.sqrt(x * x + y * y), 2)
+    return dis
+
+
+def generate_point(A, B, C, line):
+    point = []
+    if B != 0:
+        i = min(line[0][0], line[1][0])
+        while i <= max(line[0][0], line[1][0]):
+            y = int((-C - A * i) / B)
+            point.append([i, y])
+            i = i + 1
+    else:
+        i = min(line[0][1],line[1][1])
+        while i <= max(line[0][1],line[1][1]):
+            point.append([line[0][0],i])
+            i = i + 1
+    return point
+
+
+def generate_equation(first_x, first_y, second_x, second_y):
+    # 一般式 Ax+By+C=0
+    A = second_y - first_y
+    B = first_x - second_x
+    C = second_x * first_y - first_x * second_y
+    return A, B, C
+
+
+# 寻找最近的一条边
+def search_edge(type1, type2, replace):
+    for i in range(4):
+        if i < 3:
+            flag = is_intersected(type1['center'], type2['center'], replace['vercoordinate'][i],
+                                  replace['vercoordinate'][i + 1])
+        else:
+            flag = is_intersected(type1['center'], type2['center'], replace['vercoordinate'][i],
+                                  replace['vercoordinate'][0])
+        if flag != 0:
+            return flag
 
 
 # 给定一组标签，返回符合要求的标签对

@@ -114,7 +114,7 @@ def info_read_csv(filename):
 # vdis的csv文件读取
 def vdis_read_csv(filename):
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_viliage_dis.csv'
+    CSV_FILE_PATH = '../CSV/' + filename + '_village_dis.csv'
     vdit = []
     # 数据读取
     with open(CSV_FILE_PATH, 'r') as f:

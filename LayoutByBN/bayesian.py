@@ -14,6 +14,10 @@ from pgmpy.inference import VariableElimination
 from sklearn.mixture import GaussianMixture
 import os
 import copy
+import math
+from pgmpy.sampling import GibbsSampling
+from pgmpy.sampling import BayesianModelSampling
+from pgmpy.factors.discrete import State
 
 
 # 整理信息，得到想要的数据
@@ -83,7 +87,7 @@ def sort(filename, info, data, vdis):
 
 
 # 定义BN，进行测试
-def initial_BN(bn1_info, bn2_info, data):
+def initial_BN(bn1_info, bn2_info, data, info):
     # model = BayesianModel([('block_area', 'house_num'), ('block_area', 'type_0'),
     #                        ('block_area', 'type_1'), ('block_area', 'type_2'), ('block_area', 'type_3'),
     #                        ('block_area', 'type_4'),
@@ -119,15 +123,108 @@ def initial_BN(bn1_info, bn2_info, data):
     #     print(cpd)
     bn_info = bn2_info
 
-    for i in range(5):
-        for j in range(5):
-            house_num = model1_infer.map_query(variables=['house_num'], evidence={'block_area': i, 'vdis': j})[
-                'house_num']
-            most_type = model2_infer.map_query(variables=['most_type'],
-                                               evidence={'block_area': i, 'vdis': j,
-                                                         'house_num': house_num})['most_type']
-            guess_list = get_guess_list(data, house_num, most_type)
-            print(guess_list)
+    # for i in range(5):
+    #     for j in range(5):
+    house_num = model1_infer.map_query(variables=['house_num'], evidence={'block_area': 1, 'vdis': 4})[
+        'house_num']
+    most_type = model2_infer.map_query(variables=['most_type'],
+                                       evidence={'block_area': 1, 'vdis': 4,
+                                                 'house_num': house_num})['most_type']
+    guess_list = get_guess_list(data, house_num, most_type)
+
+    direction_list = []
+
+    for i in range(len(guess_list)):
+        j = i + 1
+        while (j < len(guess_list)):
+            direction_list.append(two_house_angle(info, data, guess_list[i], guess_list[j]))
+            j = j + 1
+    print(guess_list)
+
+
+# 给定两个类型，返回这两个类型最有可能存在的位置关系
+def two_house_angle(info, data, type1, type2):
+    train_data = []
+    for i in range(len(info)):
+        index = get_pair(data[i][0], type1, type2)
+        for j in range(len(index)):
+            temp2 = []
+            angle = get_angle(info[i][index[j][0]]['center'], info[i][index[j][1]]['center'])
+            direction = angle2direction(angle)
+            temp2.append(type1)
+            temp2.append(type2)
+            temp2.append(direction)
+            train_data.append(temp2)
+
+    model = BayesianModel([('type1', 'direction'), ('type2', 'direction')])
+    df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction'])
+    model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
+    model_infer = VariableElimination(model)
+    # direction = model_infer.map_query(variables=['direction'], evidence={'type1': type1, 'type2': type2})[
+    #     'direction']
+    inference = BayesianModelSampling(model)
+    evidence = [State(var='type1', state=type1),State(var='type2', state=type2)]
+
+    direction_infer = inference.rejection_sample(evidence=evidence, size=1, return_type='dataframe')
+
+    type1_cols = direction_infer['type1']
+    direction_infer = direction_infer.drop('type1',axis = 1)
+    direction_infer.insert(0,'type1',type1_cols)
+
+    direction_infer = direction_infer.values.tolist()
+    return direction_infer[0]
+
+
+# 给定一组标签，返回符合要求的标签对
+def get_pair(label, type1, type2):
+    label_list = []
+    pair = []
+    index_temp = []
+    index = []
+    for i in range(len(label)):
+        j = i + 1
+        while (j < len(label)):
+            temp = []
+            label_list.append([label[i], label[j]])
+            index_temp.append([i, j])
+            j = j + 1
+    for i in range(len(label_list)):
+        if type1 in label_list[i]:
+            if type2 in label_list[i]:
+                pair.append(label_list[i])
+                index.append(index_temp[i])
+    return index
+
+
+# 由坐标转换成朝向
+def angle2direction(angle):
+    if angle >= 45 and angle < 135:
+        return 'N'
+    elif angle >= 135 and angle < 225:
+        return 'W'
+    elif angle >= 225 and angle < 315:
+        return 'S'
+    else:
+        return 'E'
+
+
+# 获取角度
+def get_angle(min_nd, box_center):
+    x = abs(min_nd[0] - box_center[0])
+    y = abs(min_nd[1] - box_center[1])
+    z = math.sqrt(x * x + y * y)
+    if (min_nd[0] == box_center[0] and min_nd[1] == box_center[1]):
+        angle = 0
+    else:
+        angle = round(math.asin(y / z) / math.pi * 180)
+
+    if (box_center[0] > min_nd[0] and box_center[1] < min_nd[1]):
+        angle = 180 - angle
+    elif (box_center[0] > min_nd[0] and box_center[1] > min_nd[1]):
+        angle = 180 + angle
+    elif (box_center[0] < min_nd[0] and box_center[1] > min_nd[1]):
+        angle = 360 - angle
+    return angle
 
 
 # 获取猜测房子的类型
@@ -137,7 +234,7 @@ def get_guess_list(data, house_num, most_type):
 
     train_data = []
     p = 0
-    while (p < house_num-1):
+    while (p < house_num - 1):
         # 针对data中的每一条数据：
         for i in range(len(data)):
             # 取出一个block中所有房子
@@ -161,7 +258,7 @@ def get_guess_list(data, house_num, most_type):
                             item.append(remain_list[j])
                             train_data.append(item)
                 # else:
-                    # print('2')
+                # print('2')
         if (len(train_data) != 0):
             bn_tuple = [('house_num', 'guess_type')]
             bn_node = ['house_num']
@@ -184,7 +281,7 @@ def get_guess_list(data, house_num, most_type):
             guess_type = model_infer.map_query(variables=['guess_type'],
                                                evidence=evidence_dict)['guess_type']
             guess_list.append(int(guess_type))
-            p = p + 1
+        p = p + 1
     return guess_list
 
 
@@ -212,6 +309,6 @@ if __name__ == "__main__":
     vdis = dp.vdis_read_csv('1')
     data = dp.cnts_read_csv('1')
     bn1_info, bn2_info = sort('1', info, data, vdis)
-    initial_BN(bn1_info, bn2_info, data)
+    initial_BN(bn1_info, bn2_info, data, info)
     # dp.showBN(model)
     # print(df)

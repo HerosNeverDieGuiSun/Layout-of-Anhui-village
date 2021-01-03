@@ -19,6 +19,9 @@ from pgmpy.sampling import GibbsSampling
 from pgmpy.sampling import BayesianModelSampling
 from pgmpy.factors.discrete import State
 from intersected import is_intersected
+from angle_dis import two_house_angle_dis
+from house_size import get_house_size
+from house_size import train_house_size_model
 
 
 # 整理信息，得到想要的数据
@@ -42,7 +45,7 @@ def sort(filename, info, data, vdis):
         road_area = dp.gaussian_read(filename + '_road_area')
         vdis = dp.gaussian_read(filename + '_vdis')
     else:
-        # 使用高斯模糊聚类算法，将面积分为10类
+        # 使用高斯模糊聚类算法，将面积分为5类
         road_model = GaussianMixture(n_components=5)
         road_area = road_model.fit_predict(road_area)
         # 使用高斯模糊聚类算法，将vdis分为5类
@@ -92,192 +95,75 @@ def initial_BN(bn1_info, bn2_info, data, info):
     model1 = BayesianModel([('block_area', 'house_num'), ('vdis', 'house_num')])
     df1 = pd.DataFrame(bn1_info, columns=['block_area', 'vdis', 'house_num'])
     model1.fit(df1, estimator=BayesianEstimator, prior_type="BDeu")
-    model1_infer = VariableElimination(model1)
+    dp.write_bif(model1, 'house_num')
 
     model2 = BayesianModel(
         [('block_area', 'house_num'), ('vdis', 'house_num'), ('block_area', 'most_type'), ('vdis', 'most_type'),
          ('house_num', 'most_type')])
     df2 = pd.DataFrame(bn2_info, columns=['block_area', 'vdis', 'house_num', 'most_type'])
     model2.fit(df2, estimator=BayesianEstimator, prior_type="BDeu")
+    dp.write_bif(model2, 'most_type')
+
+
+def guess_list(info):
+    model1 = dp.read_bif('house_num')
+    model2 = dp.read_bif('most_type')
+    model1_infer = VariableElimination(model1)
     model2_infer = VariableElimination(model2)
+    train_house_size_model(info)
 
     # for cpd in model2.get_cpds():
     #     print(cpd)
-    bn_info = bn2_info
 
     # for i in range(5):
     #     for j in range(5):
-    house_num = model1_infer.map_query(variables=['house_num'], evidence={'block_area': 1, 'vdis': 4})[
-        'house_num']
-    most_type = model2_infer.map_query(variables=['most_type'],
-                                       evidence={'block_area': 1, 'vdis': 4,
-                                                 'house_num': house_num})['most_type']
-    guess_list = get_guess_list(data, house_num, most_type)
 
+    # 采样部分
+    # 模型1：
+    evidence1 = [State(var='block_area', state='1'), State(var='vdis', state='4')]
+    data1_infer = model_sample(model1,evidence1)
+    house_num = data1_infer['house_num']
+    evidence2 = [State(var='block_area', state='1'), State(var='vdis', state='4'),State(var = 'house_num',state=house_num)]
+    data2_infer = model_sample(model2,evidence2)
+    most_type = data2_infer['most_type']
+    guess_list = get_guess_list(data, int(house_num), int(most_type))
     direction_list = []
-
     for i in range(len(guess_list)):
         j = i + 1
         while (j < len(guess_list)):
-            direction_list.append(two_house_angle(info, data, guess_list[i], guess_list[j]))
+            direction_list.append(two_house_angle_dis(info, data, guess_list[i], guess_list[j]))
             j = j + 1
+    print()
+    # 模型2：
+
+
+    # 固定输出部分
+    # house_num = model1_infer.map_query(variables=['house_num'], evidence={'block_area': 1, 'vdis': 4})[
+    #     'house_num']
+    # most_type = model2_infer.map_query(variables=['most_type'],
+    #                                    evidence={'block_area': 1, 'vdis': 4,
+    #                                              'house_num': house_num})['most_type']
+    # guess_list = get_guess_list(data, house_num, most_type)
+    #
+    # direction_list = []
+    #
+    # for i in range(len(guess_list)):
+    #     j = i + 1
+    #     while (j < len(guess_list)):
+    #         direction_list.append(two_house_angle_dis(info, data, guess_list[i], guess_list[j]))
+    #         j = j + 1
+
+    side_guess = get_house_size(info, guess_list)
+
     print(guess_list)
 
-
-# 给定两个类型，返回这两个类型最有可能存在的位置关系
-def two_house_angle(info, data, type1, type2):
-    train_data = []
-    for i in range(len(info)):
-        # 获取符合要求的节点对
-        index = get_pair(data[i][0], type1, type2)
-
-        for j in range(len(index)):
-            angle = get_angle(info[i][index[j][0]]['center'], info[i][index[j][1]]['center'])
-            dis = two_house_dis(info[i][index[j][0]], info[i][index[j][1]], index)
-            direction = angle2direction(angle)
-            # train_data.append([type1, type2, direction,dis])
-            train_data.append([type1, type2, direction])
-
-    # model = BayesianModel([('type1', 'direction'), ('type2', 'direction'),('type1', 'dis'),('type2', 'dis')])
-    model = BayesianModel([('type1', 'direction'), ('type2', 'direction')])
-    # df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction','dis'])
-    df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction'])
-    model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
-    model_infer = VariableElimination(model)
-    # direction = model_infer.map_query(variables=['direction'], evidence={'type1': type1, 'type2': type2})[
-    #     'direction']
+def model_sample(model,evidence):
     inference = BayesianModelSampling(model)
-    evidence = [State(var='type1', state=type1), State(var='type2', state=type2)]
-    direction_infer = inference.rejection_sample(evidence=evidence, size=1, return_type='dataframe')
-
-    type1_cols = direction_infer['type1']
-    direction_infer = direction_infer.drop('type1', axis=1)
-    direction_infer.insert(0, 'type1', type1_cols)
-
-    direction_infer = direction_infer.values.tolist()
-    return direction_infer[0]
-
-
-# 获取两个房子的之间的距离
-def two_house_dis(type1, type2, index):
-    # # 分别计算两矩形中心点在X轴和Y轴的距离
-    # dx = abs(type1['center'][0] - type2['center'][0])
-    # dy = abs(type1['center'][1] - type2['center'][1])
-
-    # a = is_intersected([1,1],[2,2],[1,-1],[-1,1])
-    line1 = search_edge(type1, type2, type1)
-    line2 = search_edge(type1, type2, type2)
-    A1, B1, C1 = generate_equation(line1[0][0], line1[0][1], line1[1][0], line1[1][1])
-    A2, B2, C2 = generate_equation(line2[0][0], line2[0][1], line2[1][0], line2[1][1])
-    point_list1 = generate_point(A1, B1, C1, line1)
-    point_list2 = generate_point(A2, B2, C2, line2)
-    min_dis = get_distance(point_list1[0], point_list2[0])
-    for i in range(len(point_list1)):
-        for j in range(len(point_list2)):
-            dis = get_distance(point_list1[i], point_list2[j])
-            if dis < min_dis:
-                min_dis = dis
-    return min_dis
-
-
-def get_distance(point1, point2):
-    x = abs(point1[0] - point2[0])
-    y = abs(point1[1] - point2[1])
-    dis = round(math.sqrt(x * x + y * y), 2)
-    return dis
-
-
-def generate_point(A, B, C, line):
-    point = []
-    if B != 0:
-        i = min(line[0][0], line[1][0])
-        while i <= max(line[0][0], line[1][0]):
-            y = int((-C - A * i) / B)
-            point.append([i, y])
-            i = i + 1
-    else:
-        i = min(line[0][1],line[1][1])
-        while i <= max(line[0][1],line[1][1]):
-            point.append([line[0][0],i])
-            i = i + 1
-    return point
-
-
-def generate_equation(first_x, first_y, second_x, second_y):
-    # 一般式 Ax+By+C=0
-    A = second_y - first_y
-    B = first_x - second_x
-    C = second_x * first_y - first_x * second_y
-    return A, B, C
-
-
-# 寻找最近的一条边
-def search_edge(type1, type2, replace):
-    for i in range(4):
-        if i < 3:
-            flag = is_intersected(type1['center'], type2['center'], replace['vercoordinate'][i],
-                                  replace['vercoordinate'][i + 1])
-        else:
-            flag = is_intersected(type1['center'], type2['center'], replace['vercoordinate'][i],
-                                  replace['vercoordinate'][0])
-        if flag != 0:
-            return flag
-
-
-# 给定一组标签，返回符合要求的标签对
-def get_pair(label, type1, type2):
-    label_list = []
-    pair = []
-    index_temp = []
-    index = []
-    for i in range(len(label)):
-        j = i + 1
-        while (j < len(label)):
-            temp = []
-            label_list.append([label[i], label[j]])
-            index_temp.append([i, j])
-            j = j + 1
-    for i in range(len(label_list)):
-        if type1 in label_list[i]:
-            if type2 in label_list[i]:
-                pair.append(label_list[i])
-                index.append(index_temp[i])
-    return index
-
-
-# 由坐标转换成朝向
-def angle2direction(angle):
-    if angle >= 45 and angle < 135:
-        return 'N'
-    elif angle >= 135 and angle < 225:
-        return 'W'
-    elif angle >= 225 and angle < 315:
-        return 'S'
-    else:
-        return 'E'
-
-
-# 获取角度
-def get_angle(min_nd, box_center):
-    x = abs(min_nd[0] - box_center[0])
-    y = abs(min_nd[1] - box_center[1])
-    z = math.sqrt(x * x + y * y)
-    if (min_nd[0] == box_center[0] and min_nd[1] == box_center[1]):
-        angle = 0
-    else:
-        angle = round(math.asin(y / z) / math.pi * 180)
-
-    if (box_center[0] > min_nd[0] and box_center[1] < min_nd[1]):
-        angle = 180 - angle
-    elif (box_center[0] > min_nd[0] and box_center[1] > min_nd[1]):
-        angle = 180 + angle
-    elif (box_center[0] < min_nd[0] and box_center[1] > min_nd[1]):
-        angle = 360 - angle
-    return angle
-
+    data_infer = inference.rejection_sample(evidence=evidence, size=1, return_type='dataframe')
+    return data_infer.iloc[0]
 
 # 获取猜测房子的类型
-def get_guess_list(data, house_num, most_type):
+def get_guess_list(data,house_num, most_type):
     guess_list = [most_type]
     # guess_list = [4, 5]
 
@@ -319,16 +205,19 @@ def get_guess_list(data, house_num, most_type):
             model = BayesianModel(bn_tuple)
             df = pd.DataFrame(train_data, columns=bn_node)
             model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
-            model_infer = VariableElimination(model)
+            # model_infer = VariableElimination(model)
 
             # for cpd in model.get_cpds():
             #     print(cpd)
-
-            evidence_dict = {'house_num': train_data[0][0]}
+            evidence = [State(var='house_num',state=train_data[0][0])]
+            # evidence_dict = {'house_num': train_data[0][0]}
             for i in range(len(train_data[0]) - 2):
-                evidence_dict['type_' + str(i)] = train_data[0][i + 1]
-            guess_type = model_infer.map_query(variables=['guess_type'],
-                                               evidence=evidence_dict)['guess_type']
+                evidence.append(State(var='type_' + str(i),state=train_data[0][i + 1]))
+                # evidence_dict['type_' + str(i)] = train_data[0][i + 1]
+            data_infer = model_sample(model,evidence)
+            guess_type = data_infer['guess_type']
+            # guess_type = model_infer.map_query(variables=['guess_type'],
+            #                                    evidence=evidence_dict)['guess_type']
             guess_list.append(int(guess_type))
         p = p + 1
     return guess_list
@@ -358,6 +247,7 @@ if __name__ == "__main__":
     vdis = dp.vdis_read_csv('1')
     data = dp.cnts_read_csv('1')
     bn1_info, bn2_info = sort('1', info, data, vdis)
-    initial_BN(bn1_info, bn2_info, data, info)
+    # initial_BN(bn1_info, bn2_info, data, info)
+    guess_list(info)
     # dp.showBN(model)
     # print(df)

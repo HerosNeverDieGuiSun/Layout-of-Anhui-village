@@ -12,6 +12,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import os
 import cv2
+from pgmpy.readwrite import BIFReader, BIFWriter
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -149,3 +150,24 @@ def showBN(model):
     nx.draw(G, with_labels=True, edge_color='gray', node_color='skyblue', node_size=100, width=3)
     plt.show()
     print()
+
+def write_bif(model,filename):
+    if (os.path.exists('./bif/' + filename + '.bif')):
+        print("文件已经存在啦")
+    else:
+        writer = BIFWriter(model)
+        writer.write_bif(filename='./bif/' + filename + '.bif')
+
+
+def read_bif(filename):
+    if(os.path.exists('./bif/'+filename+'.bif')):
+        model = BIFReader('./bif/'+filename+'.bif').get_model()
+        return model
+    else:
+        print("读取bif文件失败")
+        return 0
+
+def str2int(input_list):
+    for i in range(len(input_list)):
+        input_list[i] = int(input_list[i])
+    return input_list

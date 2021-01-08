@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*- 
-# @Time : 2020/11/6 20:37 
-# @Author : zzd,zl
-# @File : data_process.py 
-# @desc:
-
-
 import csv
 import json
 import numpy as np
@@ -176,7 +169,7 @@ def village_merge():
     info_data = []
     vdis_data = []
 
-    for i in range(2):
+    for i in range(4):
         # 设置文件路径
         CSV_FILE_PATH_cnts = '../CSV/' + str(i + 1) + '_block_cnts.csv'
         CSV_FILE_PATH_info = '../CSV/' + str(i + 1) + '_block_info.csv'

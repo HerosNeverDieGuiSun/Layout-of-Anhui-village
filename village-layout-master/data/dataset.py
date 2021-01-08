@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Time : 2020/12/13 16:10
-# @Author : zl
-# @File : dataset.py
-# @desc:
-
 import os
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
@@ -12,21 +6,25 @@ import numpy as np
 
 
 class VillageDataset(Dataset):
-    def __init__(self, source):
+    def __init__(self, source, block_category):
         if not os.path.exists(source):
             print('数据文件路径未找到')
-        self.data_dir = [source + '/cnts', source + '/info']
-        self.data_len = len(os.listdir(self.data_dir[0]))
+        self.block_category = block_category
+        self.data_dir = [source + '/cnts/{}_blocks'.format(self.block_category),
+                         source + '/info/{}_blocks'.format(self.block_category)]
+        self.cnts_files = os.listdir(self.data_dir[0])
+        self.info_files = os.listdir(self.data_dir[1])
+        self.data_len = len(self.cnts_files)
 
     def __len__(self):
         return self.data_len
 
     def __getitem__(self, idx):
         # idx的范围是从0到 len(self)的索引
-        txt_name = [i + '/{}_{}.txt'.format(str(idx), i[-4:]) for i in self.data_dir]
-        with open(txt_name[0], 'r') as cnts_f:
+        txt_name = [self.cnts_files[idx], self.info_files[idx]]
+        with open(self.data_dir[0] + '/' + txt_name[0], 'r') as cnts_f:
             cnts = eval(cnts_f.read())
-        with open(txt_name[1], 'r') as info_f:
+        with open(self.data_dir[1] + '/' + txt_name[1], 'r') as info_f:
             info = eval(info_f.read())
         block_tensor = RenderedComposite(cnts, info).get_composite()
         return block_tensor
@@ -50,8 +48,9 @@ def save_channel_img(dest_dir, data_loader):
 
 
 if __name__ == "__main__":
-    data_dir = '../txt_data'
-    dataset = VillageDataset(data_dir)
+    data_dir = '../txt_data_divide'
+    block_category = 3
+    dataset = VillageDataset(data_dir, block_category)
 
     # # 测试下数据读取
     # c = [data_dir + '/cnts', data_dir + '/info']
@@ -67,12 +66,12 @@ if __name__ == "__main__":
         shuffle=False
        )
 
-    # # 显示
-    # data_iter = iter(data_loader)
-    # data_read = next(data_iter)
-    # print(data_read[0].shape)
-    # image = plt.imshow(data_read[0][0].squeeze(), cmap='gray')  # 绘图函数imshow()
-    # plt.show()  # 显示图像
+    # 显示
+    data_iter = iter(data_loader)
+    data_read = next(data_iter)
+    print(data_read[0].shape)
+    image = plt.imshow(data_read[0][1].squeeze(), cmap='gray')  # 绘图函数imshow()
+    plt.show()  # 显示图像
 
     # 保存
     dest_dir = '../channel_img'

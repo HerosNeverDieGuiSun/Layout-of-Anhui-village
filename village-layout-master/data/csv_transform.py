@@ -1,16 +1,7 @@
-# -*- coding: utf-8 -*-
-# @Time : 2020/12/15 20:00
-# @Author : zl
-# @File : csv_transform.py
-# @desc:
-
-
 from data import data_process as dp
 import os
 from PIL import Image, ImageDraw
 import numpy as np
-
-# save_txt_dir = '../txt_data'
 
 save_txt_dir = '../txt_data_divide'
 num_block_categories = 5  # 已知划分的block类别数
@@ -110,11 +101,11 @@ if __name__ == "__main__":
     # create_txt_data(cnts, info, vdis, 0, save_txt_dir)
 
     # # 读取划分block类别后的csv数据：
-    # 数据来自于frequency_files里面的1_cnts_block_categories.csv和1_info_block_categories.csv
+    # 数据来自于frequency_files里面的cnts_block_categories.csv和info_block_categories.csv
     cnts_block_cate = dp.cnts_block_categories_read_csv()
     info_block_cate = dp.info_block_categories_read_csv()
     vdis = dp.vdis_read_csv()
-    # 获取划分后的每个block类别的txt
+    # 获取划分后的每个block类别的 txt
     create_txt_data_divide(cnts_block_cate, info_block_cate, vdis, 0, save_txt_dir)
 
 

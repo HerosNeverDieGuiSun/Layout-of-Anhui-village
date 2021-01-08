@@ -52,15 +52,19 @@ def shortest_house_dist(box_center):
     for i in range(len(box_center)):
         # 存储一个block中建筑个数的序列
         block_housenum = []
+
         # 一个block中建筑的中心坐标点集合
         house_center = []
         for l in range(len(box_center[i])):
             block_housenum.append(l)
             house_center.append(box_center[i][l].tolist())
+
         # 一个block中建筑间最近距离的计算
         temp_house_house_min_dist = []
-
         for s in range(len(house_center)):
+            if len(block_housenum) == 1:
+                temp_house_house_min_dist = [house_center, 0]
+                break
             house_house_min_dist = []
             m = house_center[s]  # 保存将要移除的建筑中心坐标
             n = block_housenum[s]  # 保存将要移除的建筑序列序号
@@ -223,17 +227,17 @@ def sort(data, all_house_towards,shd, srd):
 
 if __name__ == "__main__":
     # 导入csv数据信息
-    data = fp.cnts_read_csv('1')
+    data = fp.cnts_read_csv('4')
 
-    # fp.show_cnts('2',data)
+    fp.show_cnts('4',data)
 
     # cnts = fp.towards_read_img("2")
-    viliage_center = fp.get_viliage_center('1')
+    viliage_center = fp.get_viliage_center('4')
     vdis = viliage_dis(data, viliage_center)
     vdis = [vdis]
     # pair = towards.calculate_towards_vector(cnts, data)
     # towards.calculate_towards_angle(pair)
-    fp.vdis_write_csv(vdis, '1')
+    fp.vdis_write_csv(vdis, '4')
 
     # # 获取最小矩形包围盒中心点坐标及四个顶点坐标
 
@@ -246,6 +250,6 @@ if __name__ == "__main__":
     srd,all_house_towards = shortest_road_dist(box_center,box_vercoordinate, data)
     #
     info = sort(data, all_house_towards, shd, srd)
-    fp.info_write_csv(info, '1')
+    fp.info_write_csv(info, '4')
     # fp.show_rect('1', data)
 

@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Time : 2020/12/13 14:32
-# @Author : zl
-# @File : rendered.py
-# @desc:
-
 import torch
 from PIL import Image, ImageDraw
 import numpy as np
@@ -101,19 +95,18 @@ class RenderedComposite:
 if __name__ == "__main__":
 
     # 测试rendered代码
-    data_dir = '../txt_data'
+    data_dir = '../txt_data_divide'
     if not os.path.exists(data_dir):
         print('数据文件路径未找到')
-    with open(data_dir + '/cnts' + '/0_cnts.txt') as cnts_f:
+    with open(data_dir + '/cnts/0_blocks' + '/0_cnts_0.txt') as cnts_f:
         cnts = eval(cnts_f.read())
-    with open(data_dir + '/info' + '/0_info.txt') as info_f:
+    with open(data_dir + '/info/0_blocks' + '/0_info_0.txt') as info_f:
         info = eval(info_f.read())
     r = RenderedComposite(cnts, info).get_composite()
     # print(r)
-    # print(r.shape)
+    print(r.shape)
 
     # 测试：显示tensor的图像
-    print(r[0])
     for i in range(r.size(0)):
         plt.imshow(r[i], cmap='gray')
         plt.show()

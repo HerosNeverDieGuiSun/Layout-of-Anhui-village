@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Time : 2020/11/30 20:40
-# @Author : zl
-# @File : get_frequency_files.py
-# @desc:
-
 import csv
 import json
 import numpy as np
@@ -381,7 +375,7 @@ if __name__ == '__main__':
     # 之后的操作均在NEW_CSV中的各个文件上进行
     dp.village_merge()
 
-    # # 划分block类别及
+    # # 划分block类别
     # a = cnts_read_csv()
     # b = road_read_csv()
     # c = info_read_csv()

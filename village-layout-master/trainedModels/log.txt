@@ -1,0 +1,64 @@
+# ----- Divide dataset to train_dataset and validation_dataset ----- #
+done
+# ----- Building train datasets ----- #
+done
+# ----- Building validation datasets ----- #
+done
+# ----- Building model ----- #
+# ----- Building optimizer ----- #
+done
+# ----- Basic information ----- #
+train epochs: 8
+save_per_epoch: 1
+batch_size: 3
+block_category: 3
+
+# ----- train ----- #
+<=========================== Epoch 0 ===========================>
+p_removing: 0.0
+validation items is: 1
+total_loss is: 3.141561269760132
+total_accuracy is 1
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 1 ===========================>
+p_removing: 0.0
+validation items is: 1
+total_loss is: 5.617079257965088
+total_accuracy is 1
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 2 ===========================>
+p_removing: 0.0
+validation items is: 1
+total_loss is: 6.6402363777160645
+total_accuracy is 0
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 3 ===========================>
+p_removing: 0.3
+validation items is: 1
+total_loss is: 4.08811092376709
+total_accuracy is 1
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 4 ===========================>
+p_removing: 0.5
+validation items is: 1
+total_loss is: 2.3841588497161865
+total_accuracy is 0
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 5 ===========================>
+p_removing: 0.7
+validation items is: 1
+total_loss is: 1.5711517333984375
+total_accuracy is 2
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 6 ===========================>
+p_removing: 0.7
+validation items is: 1
+total_loss is: 0.8874030113220215
+total_accuracy is 2
+<=== Model and optimizer have been saved ====>
+<=========================== Epoch 7 ===========================>
+p_removing: 0.7
+validation items is: 1
+total_loss is: 1.7545489072799683
+total_accuracy is 2
+<=== Model and optimizer have been saved ====>

@@ -2,8 +2,6 @@ import torch
 from PIL import Image, ImageDraw
 import numpy as np
 import os
-from torchvision import transforms
-import pdb
 
 import matplotlib.pyplot as plt
 
@@ -12,8 +10,8 @@ class RenderedComposite:
     def __init__(self, cnts, info, size=256, categories_num=10):
         self.cnts = cnts
         self.info = info
-        self.size = size  # 暂定尺寸为256×256
-        self.categories_num = categories_num  # 房子类别数为10
+        self.size = size                        # 暂定尺寸为256×256
+        self.categories_num = categories_num    # 房子类别数为10
 
         self.block_mask = torch.zeros((self.size, self.size))  # block mask
         self.house_mask = torch.zeros((self.size, self.size))  # house mask
@@ -63,7 +61,6 @@ class RenderedComposite:
         self.categories_map[index] += img_tensor
 
     def add_categories_and_house_map(self):
-
         for i in self.info:
             self.add_categories_map(i['label'], i['vercoordinate'])
         self.house_mask = self.categories_map.sum(axis=0)
@@ -91,6 +88,12 @@ class RenderedComposite:
 
         return composite
 
+    # 记录移除的房屋中心点坐标 (loc_dataset.py中用到)
+    def get_movedhouse_center(self, index):
+        pos = self.info[index]['center']
+        center_x = int((pos[0] - self.xmin) * self.xtimes)
+        center_y = int((pos[1] - self.ymin) * self.ytimes)
+        return center_x, center_y
 
 if __name__ == "__main__":
 

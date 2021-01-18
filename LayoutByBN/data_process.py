@@ -128,6 +128,7 @@ def vdis_read_csv(filename):
     return vdit[0]
 
 
+# 高斯文件写入
 def gaussian_write(data, filename):
     string = ''
     for i in range(len(data)):
@@ -141,6 +142,7 @@ def gaussian_read(filename):
         data = np.array(list(f.read()))
     return data
 
+
 # 贝叶斯网络图像展示
 def showBN(model):
     edges = model.edges()
@@ -151,7 +153,9 @@ def showBN(model):
     plt.show()
     print()
 
-def write_bif(model,filename):
+
+# 写入概率图形文件
+def write_bif(model, filename):
     if (os.path.exists('./bif/' + filename + '.bif')):
         print("文件已经存在啦")
     else:
@@ -159,15 +163,94 @@ def write_bif(model,filename):
         writer.write_bif(filename='./bif/' + filename + '.bif')
 
 
+# 读取概率模型文件
 def read_bif(filename):
-    if(os.path.exists('./bif/'+filename+'.bif')):
-        model = BIFReader('./bif/'+filename+'.bif').get_model()
+    if (os.path.exists('./bif/' + filename + '.bif')):
+        model = BIFReader('./bif/' + filename + '.bif').get_model()
         return model
     else:
         print("读取bif文件失败")
         return 0
 
+
 def str2int(input_list):
     for i in range(len(input_list)):
         input_list[i] = int(input_list[i])
     return input_list
+
+
+# 初始化画布
+def init_canvas(width, height, color=(255, 255, 255)):
+    canvas = np.ones((height, width, 3), dtype="uint8")
+    canvas[:] = color
+    return canvas
+
+
+# 轮廓图像展示函数,使用的data数据
+def show_cnts(filename, data):
+    frame = cv2.imread('../TestImage/' + filename + '.png')
+    x = frame.shape[1]
+    y = frame.shape[0]
+    # 生成指定大小的画布
+    canvas = init_canvas(x, y, color=(255, 255, 255))
+    cv2.polylines(canvas, data, 1, 0)
+    cv2.imshow("frame", canvas)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.destroyWindow('frame')
+
+
+# 展示布局
+def show_layout(cnts, corner):
+    filename = '1'
+    frame = cv2.imread('../TestImage/' + filename + '.png')
+    x = frame.shape[1]
+    y = frame.shape[0]
+    # 生成指定大小的画布
+    canvas = init_canvas(x, y, color=(255, 255, 255))
+    cv2.polylines(canvas, cnts, 1, 0)
+    # for i in range(len(corner)):
+    #     cv2.rectangle(canvas, corner[i][0], corner[i][2],(0,0,0))
+    cv2.imshow("frame", canvas)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.destroyWindow('frame')
+
+# 展示布局
+def show_line(cnts,input_cnts):
+    filename = '1'
+    frame = cv2.imread('../TestImage/' + filename + '.png')
+    x = frame.shape[1]
+    y = frame.shape[0]
+    # 生成指定大小的画布
+    canvas = init_canvas(x, y, color=(255, 255, 255))
+    for i in range(len(cnts)):
+        if i != len(cnts)-1 :
+            cv2.line(canvas, (cnts[i][0][0],cnts[i][0][1]), (cnts[i+1][0][0],cnts[i+1][0][1]), color=(0, 0, 0),thickness=1)
+        else:
+            cv2.line(canvas, (cnts[i][0][0],cnts[i][0][1]), (cnts[0][0][0],cnts[0][0][1]), color=(0, 0, 0), thickness=1)
+    cv2.polylines(canvas, input_cnts, 1, 0)
+    cv2.imshow("frame", canvas)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.destroyWindow('frame')
+
+# 读取测试文件
+def read_text_image(filename):
+    # 读取图片
+    frame = cv2.imread("../TestImage/" + filename + ".png")
+    # 高斯模糊
+    gs_frame = cv2.GaussianBlur(frame, (5, 5), 0)
+    # 转化成HSV图像
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    color_dist = {
+        # 提取道路
+        "black": {'Lower': np.array([0, 0, 0]), 'Upper': np.array([180, 255, 46])},
+    }
+    # 选取范围
+    inRange_hsv = cv2.inRange(hsv, color_dist["black"]['Lower'], color_dist["black"]['Upper'])
+    # 提取轮廓
+    cnts = cv2.findContours(inRange_hsv.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[-2]
+    center = cv2.minAreaRect(cnts[0])[0]
+    return cnts[0]

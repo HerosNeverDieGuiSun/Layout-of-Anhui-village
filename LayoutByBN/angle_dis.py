@@ -16,6 +16,7 @@ from pgmpy.factors.discrete import State
 import pandas as pd
 from intersected import is_intersected
 
+
 def two_house_angle_dis(info, data, type1, type2):
     train_data = []
     for i in range(len(info)):
@@ -28,12 +29,11 @@ def two_house_angle_dis(info, data, type1, type2):
             direction = angle2direction(angle)
             train_data.append([type1, type2, direction, dis])
             # train_data.append([type1, type2, direction])
-    train_data = dis2gaussian(train_data)
+    train_data, dis_mean = dis2gaussian(train_data)
 
-
-    model = BayesianModel([('type1', 'direction'), ('type2', 'direction'),('type1', 'dis'),('type2', 'dis')])
+    model = BayesianModel([('type1', 'direction'), ('type2', 'direction'), ('type1', 'dis'), ('type2', 'dis')])
     # model = BayesianModel([('type1', 'direction'), ('type2', 'direction')])
-    df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction','dis'])
+    df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction', 'dis'])
     # df = pd.DataFrame(train_data, columns=['type1', 'type2', 'direction'])
     model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
     model_infer = VariableElimination(model)
@@ -48,7 +48,17 @@ def two_house_angle_dis(info, data, type1, type2):
     direction_infer.insert(0, 'type1', type1_cols)
 
     direction_infer = direction_infer.values.tolist()
+
+    direction_infer[0][2] = dis_mean[direction_infer[0][2]][0]
+
     return direction_infer[0]
+
+
+def save_decimal(input):
+    for i in input:
+        i[0] = round(i[0], 2)
+    return input
+
 
 # 距离聚类函数
 def dis2gaussian(train_data):
@@ -61,7 +71,9 @@ def dis2gaussian(train_data):
     dis_temp = dis_gaussian.fit_predict(dis_temp)
     for i in range(len(train_data)):
         train_data[i][3] = dis_temp[i]
-    return train_data
+    dis_mean = save_decimal(dis_gaussian.means_)
+    return train_data, dis_mean
+
 
 # 获取两个房子的之间的距离
 def two_house_dis(type1, type2):
@@ -104,6 +116,7 @@ def get_angle(min_nd, box_center):
         angle = 360 - angle
     return angle
 
+
 # 获取两个点之间的距离
 def get_distance(point1, point2):
     x = abs(point1[0] - point2[0])
@@ -127,6 +140,7 @@ def generate_point(A, B, C, line):
             i = i + 1
     return point
 
+
 # 生成线性函数
 def generate_equation(first_x, first_y, second_x, second_y):
     # 一般式 Ax+By+C=0
@@ -147,6 +161,7 @@ def search_edge(type1, type2, replace):
                                   replace['vercoordinate'][0])
         if flag != 0:
             return flag
+
 
 # 给定一组标签，返回符合要求的标签对
 def get_pair(label, type1, type2):

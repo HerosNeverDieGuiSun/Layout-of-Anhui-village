@@ -18,15 +18,16 @@ import data_process as dp
 
 
 def train_house_size_model(info):
-    train_data = get_train_data(info)
+    train_data, length_mean, width_mean = get_train_data(info)
     model = BayesianModel([('house_num', 'length'), ('house_num', 'width'), ('type', 'length'), ('type', 'width')])
     df = pd.DataFrame(train_data, columns=['house_num', 'type', 'length', 'width'])
     model.fit(df, estimator=BayesianEstimator, prior_type="BDeu")
     model_infer = VariableElimination(model)
     dp.write_bif(model, 'house_size')
+    return length_mean, width_mean
 
 
-def get_house_size(info,guess_list):
+def get_house_size(guess_list, length_mean, width_mean):
     model2 = dp.read_bif('house_size')
     # model2.name = ''
     # model2.graph.clear()
@@ -45,8 +46,11 @@ def get_house_size(info,guess_list):
         data_infer = data_infer[order]
         data_infer = data_infer.values.tolist()
         side_guess.append(dp.str2int(data_infer[0]))
-
+    for i in range(len(side_guess)):
+        side_guess[i][2] = length_mean[side_guess[i][2]][0]
+        side_guess[i][3] = width_mean[side_guess[i][3]][0]
     return side_guess
+
 
 # 获取训练数据
 def get_train_data(info):
@@ -61,8 +65,8 @@ def get_train_data(info):
             temp_list.append(temp_length)
             temp_list.append(temp_width)
             train_data.append(temp_list)
-    train_data = dis2gaussian(train_data)
-    return train_data
+    train_data, length_mean, width_mean = dis2gaussian(train_data)
+    return train_data, length_mean, width_mean
 
 
 # 距离聚类函数
@@ -80,9 +84,18 @@ def dis2gaussian(train_data):
     temp_length = length_gaussian.fit_predict(temp_length)
     temp_width = width_gaussian.fit_predict(temp_width)
 
-    # a = dis_gaussian.means_
+    width_mean = width_gaussian.means_
+    length_mean = length_gaussian.means_
+    width_mean = save_decimal(width_mean)
+    length_mean = save_decimal(length_mean)
 
     for i in range(len(train_data)):
         train_data[i][2] = temp_length[i]
         train_data[i][3] = temp_width[i]
-    return train_data
+    return train_data, length_mean, width_mean
+
+
+def save_decimal(input):
+    for i in input:
+        i[0] = round(i[0], 2)
+    return input

@@ -24,7 +24,7 @@ def toarray(str):
     arr = np.array(temp)
     return arr
 
-
+# str转list
 def str2list(str):
     l = []
     if (len(str) == 9):
@@ -36,7 +36,7 @@ def str2list(str):
         print('转成list失败了')
     return l
 
-
+# str转字典
 def todict(str):
     str = delchar(str)
     temp = json.loads(str)
@@ -172,7 +172,7 @@ def read_bif(filename):
         print("读取bif文件失败")
         return 0
 
-
+# 字符转int
 def str2int(input_list):
     for i in range(len(input_list)):
         input_list[i] = int(input_list[i])
@@ -185,14 +185,18 @@ def init_canvas(width, height, color=(255, 255, 255)):
     canvas[:] = color
     return canvas
 
+def save_block(filename,cnts):
+    # 生成指定大小的画布
+    canvas = init_canvas(1500, 1000, color=(255, 255, 255))
+
 
 # 轮廓图像展示函数,使用的data数据
 def show_cnts(filename, data):
-    frame = cv2.imread('../TestImage/' + filename + '.png')
-    x = frame.shape[1]
-    y = frame.shape[0]
+    # frame = cv2.imread('../TestImage/' + filename + '.png')
+    # x = frame.shape[1]
+    # y = frame.shape[0]
     # 生成指定大小的画布
-    canvas = init_canvas(x, y, color=(255, 255, 255))
+    canvas = init_canvas(1500, 1200, color=(255, 255, 255))
     cv2.polylines(canvas, data, 1, 0)
     cv2.imshow("frame", canvas)
     cv2.waitKey(0)

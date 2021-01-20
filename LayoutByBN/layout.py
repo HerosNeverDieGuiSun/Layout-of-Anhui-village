@@ -60,6 +60,7 @@ def guess_layout(input_cnts, input_area):
     dp.show_layout(input_cnts, corner)
     return corner
 
+# 优化布局，未做完
 def optimization_layout(corner,input_cnts):
     a = cv2.approxPolyDP(input_cnts,5,True)
     dp.show_line(a,input_cnts)

@@ -23,7 +23,7 @@ from angle_dis import two_house_angle_dis
 from house_size import get_house_size
 from house_size import train_house_size_model
 import layout as lay
-
+from hu_moment import moment_deal
 
 # 整理信息，得到想要的数据
 def sort(filename, info, data, vdis):
@@ -244,6 +244,9 @@ if __name__ == "__main__":
     info = dp.info_read_csv('1')
     vdis = dp.vdis_read_csv('1')
     data = dp.cnts_read_csv('1')
+
+    moment_deal(data)
+
     bn1_info, bn2_info, road_model, vdis_model = sort('1', info, data, vdis)
     input_cnts, input_area, input_vdis = lay.initialize_block(road_model, vdis_model)
     # initial_BN(bn1_info, bn2_info, data, info)

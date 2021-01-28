@@ -18,13 +18,13 @@ def cnts_write_csv(block_all_data, filename):
             block_all_data[i][j] = block_all_data[i][j].tolist()
     # 文件写入
     # with open('../CSV/1_block_cnts.csv', 'w') as file:
-    with open('../CSV/' + filename + '_block_cnts.csv', 'w') as file:
+    with open('../CSV1/' + filename + '_block_cnts.csv', 'w') as file:
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(block_all_data)
 
 def vdis_write_csv(dis,filename):
     # 文件写入
-    with open('../CSV/' + filename + '_village_dis.csv', 'w') as file:
+    with open('../CSV1/' + filename + '_village_dis.csv', 'w') as file:
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(dis)
 
@@ -35,7 +35,7 @@ def info_write_csv(info, filename):
             for key in info[i][j].keys():
                 info[i][j][key] = str(info[i][j][key])
     # 文件写入
-    with open('../CSV/' + filename + '_block_info.csv', 'w') as file:
+    with open('../CSV1/' + filename + '_block_info.csv', 'w') as file:
         csvwriter = csv.writer(file, lineterminator='\n')
         csvwriter.writerows(info)
 
@@ -51,7 +51,7 @@ def toarray(str):
 # 从block_cnts.csv中读取数据
 def cnts_read_csv(filename):
     # 设置文件路径
-    CSV_FILE_PATH = '../CSV/' + filename + '_block_cnts.csv'
+    CSV_FILE_PATH = '../CSV1/' + filename + '_block_cnts.csv'
     # 定义存储数据机构
     data = []
 

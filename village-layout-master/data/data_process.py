@@ -140,7 +140,7 @@ def cnts_block_categories_read_csv():
 def info_block_categories_read_csv():
 
     # 设置文件路径
-    CSV_FILE_PATH = './frequency_files/info_block_categories.csv'
+    CSV_FILE_PATH = '../frequency_files/info_block_categories.csv'
     # 定义存储数据机构
     data = []
     # 数据读取

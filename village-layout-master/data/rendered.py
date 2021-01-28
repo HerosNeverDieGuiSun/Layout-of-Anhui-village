@@ -2,8 +2,8 @@ import torch
 from PIL import Image, ImageDraw
 import numpy as np
 import os
-
 import matplotlib.pyplot as plt
+import pdb
 
 
 class RenderedComposite:
@@ -90,10 +90,15 @@ class RenderedComposite:
 
     # 记录移除的房屋中心点坐标 (loc_dataset.py中用到)
     def get_movedhouse_center(self, index):
+        # print(len(self.info), end=' ')
+        # print(len(self.cnts), end=' ')
+        # print(index)
+        # pdb.set_trace()
         pos = self.info[index]['center']
         center_x = int((pos[0] - self.xmin) * self.xtimes)
         center_y = int((pos[1] - self.ymin) * self.ytimes)
         return center_x, center_y
+
 
 if __name__ == "__main__":
 

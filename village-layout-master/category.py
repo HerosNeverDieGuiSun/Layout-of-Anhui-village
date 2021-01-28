@@ -184,10 +184,10 @@ def train(num_epoch, train_loader, train_dataset, validation_loader, model, opti
                 input_img, predict_categories, existing_categories_counts = input_img.cuda(), predict_categories.cuda(), existing_categories_counts.cuda()
 
             # 计算网络输出
-            logits = model(input_img, existing_categories_counts)
+            output = model(input_img, existing_categories_counts)
 
             # 计算损失、梯度和做反向传播
-            loss = F.cross_entropy(logits, predict_categories)
+            loss = F.cross_entropy(output, predict_categories)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -199,7 +199,7 @@ def train(num_epoch, train_loader, train_dataset, validation_loader, model, opti
             torch.save(model.state_dict(), f"{save_dir}/nextcat_{current_epoch}.pt")
             torch.save(optimizer.state_dict(), f"{save_dir}/nextcat_optim_backup.pt")
             LOG('<=== Model and optimizer have been saved ====>')
-        current_epoch += 1
+
 
         if current_epoch <= 1:
             train_dataset.p_removing = 0.0
@@ -226,12 +226,14 @@ def validate(validation_loader, model, use_cuda = False):
 
         with torch.no_grad():
             print(input_img.shape)
-            logits = model(input_img, existing_categories_counts)
-            loss = F.cross_entropy(logits, predict_categories)
-            total_loss += loss.cpu().data.numpy()
-            predict_cat = logits.max(-1)[1]
-            total_correct += (predict_cat == predict_categories).sum()
-            total_accuracy = total_correct / total_items
+            output = model(input_img, existing_categories_counts)
+            loss = F.cross_entropy(output, predict_categories)
+
+        total_loss += loss.cpu().data.numpy()
+        predict_cat = output.max(-1)[1]
+        total_correct += (predict_cat == predict_categories).sum()
+
+    total_accuracy = total_correct / total_items
 
     LOG('validation items is: {}'.format(total_items))
     LOG('total_loss is: {}'.format(total_loss))

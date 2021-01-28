@@ -112,12 +112,14 @@ def unitnormal_normal_kld(mu, logvar, size_average=True):
 def inverse_xform_img(img, loc, orient, output_size):
     batch_size = img.shape[0]
     matrices = torch.zeros(batch_size, 2, 3).cuda()
+    # matrices = torch.zeros(batch_size, 2, 3)
     cos = orient[:, 0]
     sin = orient[:, 1]
     matrices[:, 0, 0] = cos
     matrices[:, 1, 1] = cos
     matrices[:, 0, 1] = -sin
     matrices[:, 1, 0] = sin
+    loc = loc.squeeze(1)
     matrices[:, 0, 2] = loc[:, 1]
     matrices[:, 1, 2] = loc[:, 0]
     out_size = torch.Size((batch_size, img.shape[1], output_size, output_size))
@@ -139,6 +141,7 @@ def forward_xform_img(img, loc, orient, output_size):
     # (Apparently, x and y need to be swapped. I don't know why...)
     inv_trans_matrices = [torch.eye(3, 3) for i in range(0, batch_size)]
     inv_trans_matrices = torch.stack(inv_trans_matrices).cuda()
+    # inv_trans_matrices = torch.stack(inv_trans_matrices)
     inv_trans_matrices[:, 0, 2] = -loc[:, 1]
     inv_trans_matrices[:, 1, 2] = -loc[:, 0]
     # Multiply them to get the full affine matrix
@@ -152,7 +155,9 @@ def forward_xform_img(img, loc, orient, output_size):
 
 def default_loc_orient(batch_size):
     loc = torch.zeros(batch_size, 2).cuda()
+    # loc = torch.zeros(batch_size, 2)
     orient = torch.stack([torch.Tensor([math.cos(0), math.sin(0)]) for i in range(batch_size)], dim=0).cuda()
+    # orient = torch.stack([torch.Tensor([math.cos(0), math.sin(0)]) for i in range(batch_size)], dim=0)
     return loc, orient
 
 class DownConvBlock(nn.Module):
@@ -198,12 +203,14 @@ def render_orientation_sdf(img_size, dims, loc, orient):
     coords = coords.permute(1, 2, 0, 3)
     if loc.is_cuda:
         coords = coords.cuda()
+        # coords = coords
 
     # Attempting to do this faster by inverse-transforming the coordinate points and
     #    then evaluating the SDF for a standard axis-aligned plane
     inv_rot_matrices = torch.zeros(batch_size, 3, 3)
     if loc.is_cuda:
         inv_rot_matrices = inv_rot_matrices.cuda()
+        # inv_rot_matrices = inv_rot_matrices
     cos = orient[:, 0]
     sin = orient[:, 1]
     inv_rot_matrices[:, 0, 0] = cos
@@ -215,6 +222,7 @@ def render_orientation_sdf(img_size, dims, loc, orient):
     inv_trans_matrices = torch.stack(inv_trans_matrices)
     if loc.is_cuda:
         inv_trans_matrices = inv_trans_matrices.cuda()
+        # inv_trans_matrices = inv_trans_matrices
     inv_trans_matrices[:, 0, 2] = -loc[:, 0]
     inv_trans_matrices[:, 1, 2] = -loc[:, 1]
     inv_matrices = torch.matmul(inv_rot_matrices, inv_trans_matrices)
@@ -249,20 +257,6 @@ def render_oriented_sdf(img_sizes, dims, loc, orient):
 CARDINAL_ANGLES = torch.Tensor([0, math.pi/2, math.pi, 3*math.pi/2])
 CARDINAL_DIRECTIONS = torch.stack([CARDINAL_ANGLES.cos(), CARDINAL_ANGLES.sin()], dim=1)
 
-# Snap an orientation to its nearest cardinal direction
-def snap_orient(orient):
-    sims = [F.cosine_similarity(orient, cdir.unsqueeze(0).cuda()) for cdir in CARDINAL_DIRECTIONS]
-    sims = torch.stack(sims, dim=1)
-    maxvals, indices = sims.max(dim=1)
-    return CARDINAL_DIRECTIONS[indices].cuda()
-
-def should_snap(orient):
-    snap_sims = [F.cosine_similarity(orient, cdir.unsqueeze(0)) for cdir in CARDINAL_DIRECTIONS]
-    snap_sims = torch.stack(snap_sims, dim=1)
-    snap_sim, _ = snap_sims.max(dim=1)
-    snap = (snap_sim > (1 - 1e-4)).float()
-    return snap
-
 def index_to_onehot(indices, numclasses):
     """
     Turn index into one-hot vector
@@ -281,6 +275,7 @@ def index_to_onehot_fast(indices, numclasses):
     onehot = torch.zeros(indices.shape[0], numclasses)
     if indices.is_cuda:
         onehot = onehot.cuda()
+        # onehot = onehot
     onehot.scatter_(1, indices, 1)
     return onehot
 
@@ -298,6 +293,7 @@ def nearest_downsample(img, factor):
     kernel = torch.eye(nchannels).view(nchannels, nchannels, 1, 1)
     if img.is_cuda:
             kernel = kernel.cuda()
+            # kernel = kernel
     return F.conv2d(img, weight=kernel, stride=factor)
 
 def softmax2d(img):

@@ -13,6 +13,7 @@ import cv2
 import math
 import file_process as fp
 import towards
+import pdb
 
 
 # 寻找最小矩形包围盒函数
@@ -92,9 +93,10 @@ def shortest_house_dist(box_center):
 
 
 # 寻找block中的建筑与最近路的距离
-def shortest_road_dist(box_center,box_vercoordinate, data):
+def shortest_road_dist(box_center, box_vercoordinate, data):
     all_house_road_min_dist = []
     all_house_towards = []
+    all_house_min_house_side_len_center = []
     y = [0, 1, 2]
     a = y[-1]
     # # 一条block数据
@@ -113,6 +115,7 @@ def shortest_road_dist(box_center,box_vercoordinate, data):
         # house_road_min_dist = [[] for n in range(len(box_vercoordinate[i]))]
         house_road_min_dist = []
         house_toward = []
+        min_house_side_len_center = []
         for l in range(len(box_vercoordinate[i])):
             k = 0
 
@@ -135,21 +138,25 @@ def shortest_road_dist(box_center,box_vercoordinate, data):
                 temp = distance(nd.split[0], house_side_len_center[l][s])
                 if (min_dist > temp):
                     min_dist = temp
-                    min_nd = nd.split[0]
+                    min_nd = house_side_len_center[l][s]
 
+            min_house_side_len_center.append(min_nd)
             min_dist = math.sqrt(min_dist)
             min_dist = float('%0.3f' % min_dist)
             house_road_min_dist.append(min_dist)
-            house_toward.append(get_angle(min_nd,box_center[i][l]))
+            house_toward.append(get_angle(min_nd, box_center[i][l]))
+
+        all_house_min_house_side_len_center.append(min_house_side_len_center)
         all_house_road_min_dist.append(house_road_min_dist)
         all_house_towards.append(house_toward)
 
-    return all_house_road_min_dist,all_house_towards
+    return all_house_road_min_dist, all_house_towards, all_house_min_house_side_len_center
 
-# 获取朝向
-def get_angle(min_nd,box_center):
-    x = abs(min_nd[0]-box_center[0])
-    y = abs(min_nd[1]-box_center[1])
+
+# 获取朝向(边长中心点和质心的角度)
+def get_angle(min_nd, box_center):
+    x = abs(min_nd[0] - box_center[0])
+    y = abs(min_nd[1] - box_center[1])
     z = math.sqrt(x * x + y * y)
     if (min_nd[0] == box_center[0] and min_nd[1] == box_center[1]):
         angle = 0
@@ -163,6 +170,7 @@ def get_angle(min_nd,box_center):
     elif (box_center[0] < min_nd[0] and box_center[1] > min_nd[1]):
         angle = 360 - angle
     return angle
+
 
 # 计算两点间的距离
 def distance(point1, point2):
@@ -203,7 +211,7 @@ def viliage_dis(data, viliage_center):
 
 
 # 数据整理，生成字典
-def sort(data, all_house_towards,shd, srd):
+def sort(data, all_house_towards, shd, srd, min_house_side_central):
     # 获取最小矩形包围盒中心点坐标及四个顶点坐标
     box_center, box_vercoordinate = min_all_rect(data)
     # 初始化单元格信息
@@ -214,12 +222,27 @@ def sort(data, all_house_towards,shd, srd):
             cell = {}
             cell['label'] = data[i][0][j]
             cell['center'] = box_center[i][j]
+            four = box_vercoordinate[i][j].tolist()
+            origin = 0
+            for stride in range(1, 4):
+                while (stride + origin < 4):
+                    x = (four[origin][0] + four[origin + stride][0]) / 2
+                    y = (four[origin][1] + four[origin + stride][1]) / 2
+                    if ((x == min_house_side_central[i][j][0]) and (y == min_house_side_central[i][j][1])):
+                        temp = []
+                        temp.append([four[origin][0], four[origin][1]])
+                        temp.append([four[origin + stride][0], four[origin + stride][1]])
+                        cell['side_center_angle_2vercoordinate'] = temp
+                    origin += 1
+                origin = 0
+
             cell['vercoordinate'] = box_vercoordinate[i][j].tolist()
             cell['side'] = get_side(box_vercoordinate[i][j])
             cell['area'] = get_area(cell['side'])
             cell['angle'] = all_house_towards[i][j]
             cell['dist_house'] = shd[i][j]
             cell['dist_road'] = srd[i][j]
+            cell['side_center_angle'] = min_house_side_central[i][j]
             block.append(cell)
         info.append(block)
     return info
@@ -229,7 +252,7 @@ if __name__ == "__main__":
     # 导入csv数据信息
     data = fp.cnts_read_csv('4')
 
-    fp.show_cnts('4',data)
+    # fp.show_cnts('2',data)
 
     # cnts = fp.towards_read_img("2")
     viliage_center = fp.get_viliage_center('4')
@@ -240,16 +263,12 @@ if __name__ == "__main__":
     fp.vdis_write_csv(vdis, '4')
 
     # # 获取最小矩形包围盒中心点坐标及四个顶点坐标
-
-    fp.vdis_write_csv(vdis, '1')
-    #
     (box_center, box_vercoordinate) = min_all_rect(data)
     # 根据中心点坐标获取距离最近的房子
     shd = shortest_house_dist(box_center)
     # 根据矩形包围盒四边中点获取距离最近的路
-    srd,all_house_towards = shortest_road_dist(box_center,box_vercoordinate, data)
+    srd, all_house_towards, min_house_side_central = shortest_road_dist(box_center, box_vercoordinate, data)
     #
-    info = sort(data, all_house_towards, shd, srd)
+    info = sort(data, all_house_towards, shd, srd, min_house_side_central)
     fp.info_write_csv(info, '4')
-    # fp.show_rect('1', data)
-
+    # fp.show_rect('2', data)

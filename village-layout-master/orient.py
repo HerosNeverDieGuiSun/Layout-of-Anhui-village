@@ -10,7 +10,7 @@ import random
 import math
 from random import shuffle
 from models.utils import *
-from orient_dataset import OrientDataset
+from orient_dims_dataset import OrientDimsDataset
 from torch.utils.data import DataLoader
 import utils
 import os
@@ -346,7 +346,7 @@ def train(num_epoch, train_loader, validation_loader, model, optimizer, save_per
     # dataset.prepare_same_category_batches(batch_size)
     model.train()
     for current_epoch in range(num_epoch):
-        for batch_idx, (input_img, t_counts, t_cat, t_loc, t_orient) in enumerate(train_loader):
+        for batch_idx, (input_img, t_counts, t_cat, t_loc, t_orient, dim) in enumerate(train_loader):
             t_cat = torch.squeeze(t_cat)
             # # Verify that we've got only one category in this batch
             # t_cat_0 = t_cat[0]
@@ -398,7 +398,7 @@ def validate(validation_loader, model, use_cuda=False):
     total_loss = 0.0
 
     # valid_dataset.prepare_same_category_batches(batch_size)
-    for batch_idx, (input_img, t_counts, t_cat, t_loc, t_orient) in enumerate(validation_loader):
+    for batch_idx, (input_img, t_counts, t_cat, t_loc, t_orient, dim) in enumerate(validation_loader):
         t_cat = torch.squeeze(t_cat)
         # Verify that we've got only one category in this batch
         # t_cat_0 = t_cat[0]
@@ -448,14 +448,14 @@ if __name__ == '__main__':
     LOG('done')
 
     LOG('# ----- Building train datasets ----- #')
-    train_dataset = OrientDataset(args['data_folder'] + '/orient_train', args['block_category'],
-                                  args['counts_house_categories'])
+    train_dataset = OrientDimsDataset(args['data_folder'] + '/orient_train', args['block_category'],
+                                      args['counts_house_categories'])
     train_dataloader = DataLoader(train_dataset, batch_size=args['batch_size'], drop_last=True)
     LOG('done')
 
     LOG('# ----- Building validation datasets ----- #')
-    validation_dataset = OrientDataset(args['data_folder'] + '/orient_validation', args['block_category'],
-                                       args['counts_house_categories'])
+    validation_dataset = OrientDimsDataset(args['data_folder'] + '/orient_validation', args['block_category'],
+                                           args['counts_house_categories'])
     validation_dataloader = DataLoader(validation_dataset, batch_size=args['batch_size'], drop_last=True)
     LOG('done')
 

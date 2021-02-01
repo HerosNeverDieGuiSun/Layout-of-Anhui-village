@@ -112,7 +112,6 @@ def unitnormal_normal_kld(mu, logvar, size_average=True):
 def inverse_xform_img(img, loc, orient, output_size):
     batch_size = img.shape[0]
     matrices = torch.zeros(batch_size, 2, 3).cuda()
-    # matrices = torch.zeros(batch_size, 2, 3)
     cos = orient[:, 0]
     sin = orient[:, 1]
     matrices[:, 0, 0] = cos
@@ -141,7 +140,6 @@ def forward_xform_img(img, loc, orient, output_size):
     # (Apparently, x and y need to be swapped. I don't know why...)
     inv_trans_matrices = [torch.eye(3, 3) for i in range(0, batch_size)]
     inv_trans_matrices = torch.stack(inv_trans_matrices).cuda()
-    # inv_trans_matrices = torch.stack(inv_trans_matrices)
     inv_trans_matrices[:, 0, 2] = -loc[:, 1]
     inv_trans_matrices[:, 1, 2] = -loc[:, 0]
     # Multiply them to get the full affine matrix
@@ -155,9 +153,7 @@ def forward_xform_img(img, loc, orient, output_size):
 
 def default_loc_orient(batch_size):
     loc = torch.zeros(batch_size, 2).cuda()
-    # loc = torch.zeros(batch_size, 2)
     orient = torch.stack([torch.Tensor([math.cos(0), math.sin(0)]) for i in range(batch_size)], dim=0).cuda()
-    # orient = torch.stack([torch.Tensor([math.cos(0), math.sin(0)]) for i in range(batch_size)], dim=0)
     return loc, orient
 
 class DownConvBlock(nn.Module):
@@ -210,7 +206,6 @@ def render_orientation_sdf(img_size, dims, loc, orient):
     inv_rot_matrices = torch.zeros(batch_size, 3, 3)
     if loc.is_cuda:
         inv_rot_matrices = inv_rot_matrices.cuda()
-        # inv_rot_matrices = inv_rot_matrices
     cos = orient[:, 0]
     sin = orient[:, 1]
     inv_rot_matrices[:, 0, 0] = cos
@@ -222,7 +217,6 @@ def render_orientation_sdf(img_size, dims, loc, orient):
     inv_trans_matrices = torch.stack(inv_trans_matrices)
     if loc.is_cuda:
         inv_trans_matrices = inv_trans_matrices.cuda()
-        # inv_trans_matrices = inv_trans_matrices
     inv_trans_matrices[:, 0, 2] = -loc[:, 0]
     inv_trans_matrices[:, 1, 2] = -loc[:, 1]
     inv_matrices = torch.matmul(inv_rot_matrices, inv_trans_matrices)

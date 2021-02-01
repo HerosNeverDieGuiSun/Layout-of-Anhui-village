@@ -1,0 +1,1 @@
+[{'label': 9, 'center': [525, 219], 'side_center_angle_2vercoordinate': '[[523, 195], [533, 196]]', 'vercoordinate': [[527, 243], [517, 242], [523, 195], [533, 196]], 'side': [47.381, 10.05], 'area': 476.179, 'angle': 277, 'dist_house': [[525, 219]], 'dist_road': 2.693, 'side_center_angle': '[528.0, 195.5]'}]

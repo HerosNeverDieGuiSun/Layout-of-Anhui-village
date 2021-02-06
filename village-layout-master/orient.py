@@ -53,7 +53,6 @@ class Orientation(nn.Module):
                 return netdict[cat]
             else:
                 net = makefn().cuda()
-                # net = makefn()
                 netdict[cat] = net
                 return net
 
@@ -95,10 +94,10 @@ class Orientation(nn.Module):
         def make_generator():
             return nn.Sequential(
                 nn.Linear(2 * latent_size, hidden_size),
-                nn.BatchNorm1d(hidden_size),
+                # nn.BatchNorm1d(hidden_size),
                 nn.LeakyReLU(),
                 nn.Linear(hidden_size, hidden_size),
-                nn.BatchNorm1d(hidden_size),
+                # nn.BatchNorm1d(hidden_size),
                 nn.LeakyReLU(),
                 nn.Linear(hidden_size, 2)
             )
@@ -360,7 +359,7 @@ def train(num_epoch, train_loader, validation_loader, model, optimizer, save_per
                 input_img, t_counts, t_cat, t_loc, t_orient = input_img.cuda(), t_counts.cuda(), t_cat.cuda(), t_loc.cuda(), t_orient.cuda()
 
             d_loc, d_orient = default_loc_orient(actual_batch_size)
-            input_img = inverse_xform_img(input_img, t_loc, d_orient, 256)
+            input_img = inverse_xform_img(input_img, t_loc, d_orient.cuda(), 256)
 
             model.set_requires_grad('VAE', t_cat)
             optimizers.g_optimizer(t_cat).zero_grad()
@@ -409,7 +408,7 @@ def validate(validation_loader, model, use_cuda=False):
 
         input_img, t_counts, t_cat, t_loc, t_orient = input_img.cuda(), t_counts.cuda(), t_cat.cuda(), t_loc.cuda(), t_orient.cuda()
         d_loc, d_orient = default_loc_orient(actual_batch_size)
-        input_img = inverse_xform_img(input_img, t_loc, d_orient, 256)
+        input_img = inverse_xform_img(input_img, t_loc, d_orient.cuda(), 256)
 
         mu, logvar = model.encode(t_orient, t_cat)
         kld_loss = unitnormal_normal_kld(mu, logvar)

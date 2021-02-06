@@ -97,7 +97,7 @@ class LayoutSynth:
         # print(self.cnts)
         return self.current_rendered.get_composite()
 
-    def make_counts(self):
+    def _get_existing_categories(self):
         counts = torch.zeros(self.categories)
         for i in self.testcnts[0]:
             counts[i] += 1
@@ -106,7 +106,7 @@ class LayoutSynth:
     def sample_next_cat(self):
         with torch.no_grad():
             input_scene = self.generate_current_composites().unsqueeze(0)
-            counts = self.make_counts().unsqueeze(0)
+            counts = self._get_existing_categories().unsqueeze(0)
             next_cat = self.model_cat(input_scene, counts)
         return next_cat
 

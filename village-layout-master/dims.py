@@ -101,10 +101,10 @@ class Dims(nn.Module):
         def make_generator():
             return nn.Sequential(
                 nn.Linear(2 * latent_size, hidden_size),
-                nn.BatchNorm1d(hidden_size),
+                # nn.BatchNorm1d(hidden_size),
                 nn.LeakyReLU(),
                 nn.Linear(hidden_size, hidden_size),
-                nn.BatchNorm1d(hidden_size),
+                # nn.BatchNorm1d(hidden_size),
                 nn.LeakyReLU(),
                 nn.Linear(hidden_size, args['output_size']),
                 nn.Softplus()

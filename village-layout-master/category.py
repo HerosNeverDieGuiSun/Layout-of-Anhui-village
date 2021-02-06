@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from models import *
 import os
 from random import shuffle
+import pdb
 
 """
 Module that predicts the category of the next house

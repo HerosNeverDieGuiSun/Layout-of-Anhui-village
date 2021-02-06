@@ -52,6 +52,8 @@ class LayoutSynth:
         while True:
             print("New Room")
             next_cat = self.sample_next_cat()
+            _, index = torch.max(next_cat, dim=1)
+            next_cat = index[0]
             if next_cat != 10 and self.house_num < 5:
                 x, y, orient, dims = self.sample_everything_else(next_cat)
                 door_len, wall_len = dims[0], dims[1]
@@ -98,7 +100,7 @@ class LayoutSynth:
         # print(self.cnts)
         return self.current_rendered.get_composite()
 
-    def make_counts(self):
+    def _get_existing_categories(self):
         counts = torch.zeros(self.categories)
         for i in self.testcnts[0]:
             counts[i] += 1
@@ -107,9 +109,9 @@ class LayoutSynth:
     def sample_next_cat(self):
         with torch.no_grad():
             input_scene = self.generate_current_composites().unsqueeze(0).cuda()
-            counts = self.make_counts().unsqueeze(0).cuda()
+            counts = self._get_existing_categories().unsqueeze(0).cuda()
             next_cat = self.model_cat(input_scene, counts)
-        return next_cat[0][0]
+        return next_cat
 
     def sample_everything_else(self, target_cat):
         self.location_map = None
@@ -120,9 +122,8 @@ class LayoutSynth:
             y_ = ((y / w) - 0.5) * 2
             loc = torch.Tensor([x_, y_]).unsqueeze(0).cuda()
             print('loc is:{}, {}'.format(x, y))
-            target_cat = 0
             orient = self._sample_orient(loc, target_cat)
-            sin, cos = float(orient[0][1]), float(orient[0][0])
+            sin, cos = float(orient[1][0]), float(orient[0][0])
             print('orient is:{}, {}'.format(sin, cos))
 
             dims = self._sample_dims(loc, orient, target_cat)
@@ -146,8 +147,6 @@ class LayoutSynth:
             inputs = inputs.cuda()
             outputs = self.model_location(inputs)
             outputs = self.softmax(outputs)
-            # pdb.set_trace()
-            target_cat = 0
             outputs = F.upsample(outputs, mode='bilinear', scale_factor=4).squeeze()[target_cat + 1]
             outputs[self.current_composites[0] == 0] = 0  # block_mask
             outputs[self.current_composites[1] == 1] = 0  # house_mask
@@ -159,9 +158,9 @@ class LayoutSynth:
 
     def _sample_orient(self, loc, category):
         orient = torch.Tensor([math.cos(0), math.sin(0)]).unsqueeze(0).cuda()
-        input_img = self.generate_current_composites().unsqueeze(0)
+        input_img = self.generate_current_composites().unsqueeze(0).cuda()
         input_img_orient = self.inverse_xform_img(input_img, loc, orient, 64)
-        noise = torch.randn(1, 10)
+        noise = torch.randn(1, 10).cuda()
         # pdb.set_trace()
         orient = self.model_orient.generate(noise, input_img_orient, category)
 
@@ -169,9 +168,14 @@ class LayoutSynth:
 
     def inverse_xform_img(self, img, loc, orient, output_size):
         batch_size = img.shape[0]
-        matrices = torch.zeros(batch_size, 2, 3)
-        cos = orient[:, 0]
-        sin = orient[:, 1]
+        matrices = torch.zeros(batch_size, 2, 3).cuda()
+        # pdb.set_trace()
+        if type(orient) != tuple:
+            cos = orient[0, 0]
+            sin = orient[0, 1]
+        else:
+            cos = orient[0][0]
+            sin = orient[1][0]
         matrices[:, 0, 0] = cos
         matrices[:, 1, 1] = cos
         matrices[:, 0, 1] = -sin
@@ -183,9 +187,9 @@ class LayoutSynth:
         return F.grid_sample(img, grid)
 
     def _sample_dims(self, loc, orient, category):
-        input_img = self.generate_current_composites().unsqueeze(0)
+        input_img = self.generate_current_composites().unsqueeze(0).cuda()
         input_img_dims = self.inverse_xform_img(input_img, loc, orient, 64)
-        noise = torch.randn(1, 10)
+        noise = torch.randn(1, 10).cuda()
         dims = self.model_dims.generate(noise, input_img_dims, category)
 
         return dims

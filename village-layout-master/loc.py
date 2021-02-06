@@ -27,7 +27,7 @@ Module that predicts the category of the next house
 
 args = {'data_folder': './txt_data_divide',
         'save_dir': './trainedModels',
-        'epoch': 100,
+        'epoch': 4,
         'save_every_n_epochs': 1,
         'block_category': 3,
         'counts_house_categories': 10,

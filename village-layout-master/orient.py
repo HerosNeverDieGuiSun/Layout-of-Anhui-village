@@ -124,12 +124,12 @@ class Orientation(nn.Module):
         self.encoders = nn.ModuleDict()
         self.cond_priors = nn.ModuleDict()
         self.generators = nn.ModuleDict()
-        self.discriminators = nn.ModuleDict()
+        # self.discriminators = nn.ModuleDict()
 
         self.encoder = self.make_net_fn(self.encoders, make_encoder)
         self.cond_prior = self.make_net_fn(self.cond_priors, make_cond_prior)
         self.generator = self.make_net_fn(self.generators, make_generator)
-        self.discriminator = self.make_net_fn(self.discriminators, make_discriminator)
+        # self.discriminator = self.make_net_fn(self.discriminators, make_discriminator)
 
     def encode(self, t_orient, cat):
         mu_logvar = self.encoder(cat)(t_orient)
@@ -158,24 +158,24 @@ class Orientation(nn.Module):
         else:
             return orient_x, y_sign_p
 
-    def discriminate(self, walls, loc, orient, dims, cat):
-        sdf = render_oriented_sdf((256, 256), dims, loc, orient)
-        return self.discriminator(cat)(torch.cat([sdf, walls], dim=1))
+    # def discriminate(self, walls, loc, orient, dims, cat):
+    #     sdf = render_oriented_sdf((256, 256), dims, loc, orient)
+        # return self.discriminator(cat)(torch.cat([sdf, walls], dim=1))
 
     def set_requires_grad(self, phase, cat):
         if phase == 'D':
             set_requires_grad(self.generator(cat), False)
-            set_requires_grad(self.discriminator(cat), True)
+            # set_requires_grad(self.discriminator(cat), True)
             set_requires_grad(self.encoder(cat), False)
             set_requires_grad(self.cond_prior(cat), False)
         elif phase == 'G':
             set_requires_grad(self.generator(cat), True)
-            set_requires_grad(self.discriminator(cat), False)
+            # set_requires_grad(self.discriminator(cat), False)
             set_requires_grad(self.encoder(cat), False)
             set_requires_grad(self.cond_prior(cat), True)
         elif phase == 'VAE':
             set_requires_grad(self.generator(cat), True)
-            set_requires_grad(self.discriminator(cat), False)
+            # set_requires_grad(self.discriminator(cat), False)
             set_requires_grad(self.encoder(cat), True)
             set_requires_grad(self.cond_prior(cat), True)
         else:
@@ -193,7 +193,7 @@ class Orientation(nn.Module):
             _ = self.encoder(cat)
             _ = self.cond_prior(cat)
             _ = self.generator(cat)
-            _ = self.discriminator(cat)
+            # _ = self.discriminator(cat)
         self.load_state_dict(blob['state'])
 
 
@@ -222,7 +222,7 @@ class Optimizers:
         self.d_optimizers = {}
         self.e_optimizers = {}
         self.g_optimizer = self.make_optimizer_fn(self.g_optimizers, [model.generator, model.cond_prior])
-        self.d_optimizer = self.make_optimizer_fn(self.d_optimizers, [model.discriminator])
+        # self.d_optimizer = self.make_optimizer_fn(self.d_optimizers, [model.discriminator])
         self.e_optimizer = self.make_optimizer_fn(self.e_optimizers, [model.encoder])
 
     def save(self, filename):

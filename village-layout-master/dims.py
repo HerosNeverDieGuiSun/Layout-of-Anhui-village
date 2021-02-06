@@ -136,7 +136,7 @@ class Dims(nn.Module):
         self.encoder = self.make_net_fn(self.encoders, make_encoder)
         self.cond_prior = self.make_net_fn(self.cond_priors, make_cond_prior)
         self.generator = self.make_net_fn(self.generators, make_generator)
-        self.discriminator = self.make_net_fn(self.discriminators, make_discriminator)
+        # self.discriminator = self.make_net_fn(self.discriminators, make_discriminator)
 
     def encode(self, sdf, walls, cat):
         mu_logvar = self.encoder(cat)(torch.cat([sdf, walls], dim=1))
@@ -151,23 +151,23 @@ class Dims(nn.Module):
         enc_walls = self.cond_prior(cat)(walls)
         return self.generator(cat)(torch.cat([noise, enc_walls], dim=1))
 
-    def discriminate(self, sdf, walls, cat):
-        return self.discriminator(cat)(torch.cat([sdf, walls], dim=1))
+    # def discriminate(self, sdf, walls, cat):
+    #     return self.discriminator(cat)(torch.cat([sdf, walls], dim=1))
 
     def set_requires_grad(self, phase, cat):
         if phase == 'D':
             set_requires_grad(self.generator(cat), False)
-            set_requires_grad(self.discriminator(cat), True)
+            # set_requires_grad(self.discriminator(cat), True)
             set_requires_grad(self.encoder(cat), False)
             set_requires_grad(self.cond_prior(cat), False)
         elif phase == 'G':
             set_requires_grad(self.generator(cat), True)
-            set_requires_grad(self.discriminator(cat), False)
+            # set_requires_grad(self.discriminator(cat), False)
             set_requires_grad(self.encoder(cat), False)
             set_requires_grad(self.cond_prior(cat), True)
         elif phase == 'VAE':
             set_requires_grad(self.generator(cat), True)
-            set_requires_grad(self.discriminator(cat), False)
+            # set_requires_grad(self.discriminator(cat), False)
             set_requires_grad(self.encoder(cat), True)
             set_requires_grad(self.cond_prior(cat), True)
         else:
@@ -185,7 +185,7 @@ class Dims(nn.Module):
             _ = self.encoder(cat)
             _ = self.cond_prior(cat)
             _ = self.generator(cat)
-            _ = self.discriminator(cat)
+            # _ = self.discriminator(cat)
         self.load_state_dict(blob['state'])
 
 
@@ -212,14 +212,15 @@ class Optimizers:
         self.d_optimizers = {}
         self.e_optimizers = {}
         self.g_optimizer = self.make_optimizer_fn(self.g_optimizers, [model.generator, model.cond_prior])
-        self.d_optimizer = self.make_optimizer_fn(self.d_optimizers, [model.discriminator])
+        # self.d_optimizer = self.make_optimizer_fn(self.d_optimizers, [model.discriminator])
         self.e_optimizer = self.make_optimizer_fn(self.e_optimizers, [model.encoder])
 
     def save(self, filename):
         g_state = {cat: opt.state_dict() for cat, opt in self.g_optimizers.items()}
-        d_state = {cat: opt.state_dict() for cat, opt in self.d_optimizers.items()}
+        # d_state = {cat: opt.state_dict() for cat, opt in self.d_optimizers.items()}
         e_state = {cat: opt.state_dict() for cat, opt in self.e_optimizers.items()}
-        torch.save([g_state, d_state, e_state], filename)
+        # torch.save([g_state, d_state, e_state], filename)
+        torch.save([g_state, e_state], filename)
 
     def load(self, filename):
         states = torch.load(filename)
@@ -228,8 +229,8 @@ class Optimizers:
         e_state = states[2]
         for cat,state in g_state:
             self.g_optimizer(cat).load_state_dict(state)
-        for cat,state in d_state:
-            self.d_optimizer(cat).load_state_dict(state)
+        # for cat,state in d_state:
+        #     self.d_optimizer(cat).load_state_dict(state)
         for cat,state in e_state:
             self.e_optimizer(cat).load_state_dict(state)
 
@@ -356,16 +357,16 @@ def train(num_epoch, train_loader, validation_loader, model, optimizer, save_per
             # Update D
             d_loss = 0.0
             model.set_requires_grad('D', t_cat)
-            optimizers.d_optimizer(t_cat).zero_grad()
+            # optimizers.d_optimizer(t_cat).zero_grad()
             noise = torch.randn(actual_batch_size, args['latent_size'])
             noise = noise.cuda()
             fake_dims = model.generate(noise, input_img, t_cat).detach()
-            d_out_fake = model.discriminate(render_obb_sdf((args['img_size'], args['img_size']), fake_dims, t_loc, t_orient), input_img,
-                                            t_cat)
-            d_out_real = model.discriminate(real_sdf, input_img, t_cat)
-            d_loss = 0.5 * torch.mean(-torch.log(d_out_real) - torch.log(1.0 - d_out_fake))
-            d_loss.backward()
-            optimizers.d_optimizer(t_cat).step()
+            # d_out_fake = model.discriminate(render_obb_sdf((args['img_size'], args['img_size']), fake_dims, t_loc, t_orient), input_img,
+            #                                 t_cat)
+            # d_out_real = model.discriminate(real_sdf, input_img, t_cat)
+            # d_loss = 0.5 * torch.mean(-torch.log(d_out_real) - torch.log(1.0 - d_out_fake))
+            # d_loss.backward()
+            # optimizers.d_optimizer(t_cat).step()
 
             # Update G
             g_loss = 0.0
@@ -374,10 +375,10 @@ def train(num_epoch, train_loader, validation_loader, model, optimizer, save_per
             noise = torch.randn(actual_batch_size, args['latent_size'])
             noise = noise.cuda()
             fake_dims = model.generate(noise, input_img, t_cat)
-            d_out_fake = model.discriminate(render_obb_sdf((args['img_size'], args['img_size']), fake_dims, t_loc, t_orient), input_img,
-                                            t_cat)
-            g_loss = torch.mean(-torch.log(d_out_fake))
-            g_loss.backward()
+            # d_out_fake = model.discriminate(render_obb_sdf((args['img_size'], args['img_size']), fake_dims, t_loc, t_orient), input_img,
+            #                                 t_cat)
+            # g_loss = torch.mean(-torch.log(d_out_fake))
+            # g_loss.backward()
             optimizers.g_optimizer(t_cat).step()
 
             # Update E + G (VAE step)
